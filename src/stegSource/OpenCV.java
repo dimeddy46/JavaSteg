@@ -3,6 +3,11 @@ package stegSource;
 import java.io.IOException;
 import java.util.Random;
 import java.util.Scanner;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -44,7 +49,21 @@ public class OpenCV {
 	   {
 		   return Integer.parseInt(bin,2);
 	   }
+	  
+	   public static String readFile(String fileName) throws Exception
+	   {
+		   File file = new File(fileName);
+		   BufferedReader br = new BufferedReader(new FileReader(file));
 	   
+		   String st, rez = ""; 
+		   while ((st = br.readLine()) != null) 
+		   {
+			     rez += st +'\n';
+		   }
+	   
+		   br.close();
+		   return rez;
+	   } 
 // -----------------------------------------------------------------------------------	   
 // ----------------------------- ENCRYPTION ALGORITHM --------------------------------
 // -----------------------------------------------------------------------------------
@@ -434,14 +453,11 @@ public class OpenCV {
    public static byte extractHechtMat(byte[] inp)
    {
 	   byte out = 0;
-	   out |= (byte)((inp[2] & 0xFF & 1) << 7);
-	   //System.out.println(toBin(out,8)+" "+toBin((inp[2] & 0xFF & 1),8));
-	   out |= (byte)((inp[1] & 0xFF & 3) << 5);
-	   //System.out.println(toBin(out,8)+" "+toBin((inp[1] & 0xFF & 3),8));
+	   out |= (byte)((inp[2] & 0xFF & 1) << 7);		// reverse the writing operation to compose 1 byte 
+	   out |= (byte)((inp[1] & 0xFF & 3) << 5);		// from the 3 channels of 1 pixel
 	   out |= (byte)((inp[0] & 0xFF & 7) << 2);	
-	   out |= rand.nextInt(4);
-	 //  System.out.println("END:"+toBin(out,8)+" "+toBin((inp[0] & 0xFF & 7),8));
-	   return (byte)(out & 0xFF);
+	   out |= rand.nextInt(4);						// writing Hecht data causes the least signif. 2 bits to be lost, 
+	   return (byte)(out & 0xFF);					// so we fill with rand instead of leaving 00 as those bits.
    }
    
    public static byte writeHechtInfo(byte[] out, byte inp, byte index) 
@@ -522,13 +538,11 @@ public class OpenCV {
 	   i = j = 0;				
 	   for(k = 0;k < 8;k++)	// write resolution and identifier on least significant bit of cov first line
 	   {
-		 //  System.out.println("MSGVAL:"+msgVal[k]+" "+toBin(msgVal[k],8));
 		   for(p = 0;p<3;p++)
 		   {
 			   cov.get(0, i, covVal);			   
 			   j = writeHechtInfo(covVal, msgVal[k], (byte)j);
 			   cov.put(0, i++, covVal);
-		//	   new Scanner(System.in).nextLine();
 		   }
 		   j = 0;
 	   }
@@ -540,22 +554,11 @@ public class OpenCV {
 		   for(j = 0; j < msg.cols(); j++)
 		   {
 			   msg.get(i, j, msgVal);
-		//	   if(i == 0 && (j >= 0 && j <= 4)) 
-	//		   System.out.println("MSGVAL:"+msgVal[0]+" "+msgVal[1]+" "+msgVal[2]+" BINARY: "+toBin(msgVal[0],8)+" "+ toBin(msgVal[1],8)+" "+toBin(msgVal[2],8));
 			   for(k = 0;k < 3;k++)
 		   	   {
 				   cov.get(y, x, covVal);
-				//	   System.out.println("INITIAL:"+toBin(covVal[0],8)+" "+toBin(covVal[1],8)+" "+toBin(covVal[2],8)+
-				//	   				" "+covVal[0]+" "+covVal[1]+" "+covVal[2]);
 				   writeHechtMat(covVal, msgVal, k);
-				   
-				//	if(i == 0 && (j >= 0 && j <= 4))   
-				//			System.out.println("FINAAAL:"+toBin(covVal[0],8)+" "+toBin(covVal[1],8)+" "+toBin(covVal[2],8)+
-				//		   " "+covVal[0]+" "+covVal[1]+" "+covVal[2]);
 				   cov.put(y, x++, covVal);
-				   
-				 //  System.out.println(x+" "+y);
-				 //  new Scanner(System.in).nextLine();
 				   
 				   if(x == cov.cols()){ y++; x = 0; }	  
 			   }
@@ -572,7 +575,7 @@ public class OpenCV {
 	   byte[] msgVal = new byte[3], covVal = new byte[3];
 	   StringBuilder keyBuild = new StringBuilder(key);
 	  
-	   rez = passCheckHecht(cov,keyBuild);
+	   rez = passCheckHecht(cov, keyBuild);			// get resolution if password matches decripted image identifier
 	   if(rez[0] == 0)
 		   return Mat.zeros(0, 0, CvType.CV_8UC3);	// incorrect password
 	   
@@ -581,16 +584,10 @@ public class OpenCV {
 	   k = 0;
 	   x = y = 0;
 	   for(i = 1;i <= cov.rows(); i++)
-		   for(j = 0; j < cov.cols(); j++)
+		   for(j = 0; j < cov.cols(); j++)		
 		   {
 			   cov.get(i, j, covVal);
-			//   if(i == 1 && (j >= 0 && j <= 10)) 
-			//	   System.out.println("AVEM VAL: "+toBin(covVal[0],8)+" "+toBin(covVal[1],8)+" "+toBin(covVal[2],8)+
-			//			   " "+covVal[0]+" "+covVal[1]+" "+covVal[2]);
 			   msgVal[k++] = extractHechtMat(covVal);
-			 //  if(i == 1 && (j >= 0 && j <= 10)) 
-			 //  System.out.println("EXTRAS: "+msgVal[k-1]);
-			//   new Scanner(System.in).nextLine();
 			   if(k == 3)
 			   {
 				   k = 0;
@@ -602,8 +599,8 @@ public class OpenCV {
 	   return fin;
    }
    
-   public static void main(String[] args){
-	   Mat msg = Highgui.imread("Samples/bridge.png"), cov = Highgui.imread("Samples/western.png"), 
+   public static void main(String[] args) throws Exception{
+	   Mat msg = Highgui.imread("Samples/tiger.bmp"), cov = Highgui.imread("Samples/house.bmp"), 
 			   ster = Highgui.imread("Samples/bridge.png"), m;
 	   String key1 = "hest", msg1 = "12345", init = "\\st";
 	   StringBuilder val = new StringBuilder("hest"); 
@@ -611,9 +608,11 @@ public class OpenCV {
 	   int i,j;
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
-
-	   m = ascImgHecht(cov,msg,key1);
-	   Highgui.imwrite("tep1.bmp", extImgHecht(m,key1));
+	   
+	   System.out.println(readFile("Samples/tex.txt"));
+	   
+	  // m = ascImgHecht(cov,msg,key1);
+	   //Highgui.imwrite("tep1.jpg", extImgHecht(m,key1));
 //	   m = ascImgLossless(cov,msg,key1);
 //	   Highgui.imwrite("testInit.png", m);
 //	   m = Highgui.imread("testInit.png",-1);
