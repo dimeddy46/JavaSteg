@@ -1,6 +1,7 @@
 package stegSource;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.Scanner;
 
 import org.opencv.core.Core;
@@ -15,8 +16,11 @@ public class OpenCV {
 	static{
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
+
 	public static final byte[] maskHechtExtract = { 28, 96, -128};	// B(3 bit) G(2 bits) R(1 bit)
 	public static final byte[] maskHechtHide =  { -8, -4, -2}; // B G R
+	public static final String[] initStr = {"\\st", "\\str", "\\hec", "\\exe"};	// text, lossless, hecht, executable
+	public static Random rand = new Random();
 // -----------------------------------------------------------------------------------
 // ------------------------------------- UTILS ---------------------------------------
 // -----------------------------------------------------------------------------------
@@ -100,13 +104,13 @@ public class OpenCV {
 	   for(int i = 0;i < len;i++)
 	   {
 		   val = key.toString().hashCode();
-		   System.out.println(i+" IN:"+info[i]+" "+(char)info[i]);
+		   System.out.print(i+" IN:"+info[i]+" "+(char)info[i]+" ---- ");
 		   while(val != -1 && val != 0)
 		   {
 			   info[i] ^= val;
 			   val >>= 8;
 		   }		   
-		   System.out.println(i+" OUT:"+info[i]+" "+(char)info[i]);
+		   System.out.print(i+" OUT:"+info[i]+" "+(char)info[i]+" \n");
 		   key.setCharAt(k, (char)(key.charAt(k) + 1));
 		   if(key.charAt(k) == 127)
 		   {
@@ -282,54 +286,56 @@ public class OpenCV {
 	   return values;
    }
    
-   public static short[] passCheckIMG(Mat cov, StringBuilder key)
-   {
-	   byte i = 0,j = 0,k;
-	   short[] rez = new short[3];
-	   byte[] values = new byte[11];
-	   String init = "\\str";
-	   System.out.println("VERIFICARE PASSWORD");
-	   for(i = j = 0; j != 10; )		
-	   {									
-		   cov.get(0, i++, rez);
-		   for(k = 0;k<3 && j != 10;k++)		// extract resolution and initialiser from image but 2 
-		   {				   
-			   values[j++] = (byte)rez[k];
-			   if(j >= 7)							// middle positions are unoccupied, so we must discard them
-				   values[j - 3] = values[j-1];			   
-		   }
-	   }	   	   	   
-	   criptDecriptInfo(values, key, 8);		// decrypt res + init
-
-	   for(i = 4;i<8;i++)						// verify if initialiser is correct
-		   if(values[i] != init.charAt(i-4))
-			   return new short[] {0};
-	   
-	   rez = new short[3];
-	   for(j = 0; j < 4;j+=2)				// if it is, get hidden image resolution
+   public static short[] byteToRes(byte[] values)
+   {	
+	   byte j,i;
+	   short[] rez = new short[2];
+	   for(j = 0; j < 4;j+=2)				
 	   {		   
 		   rez[j/2] |= (values[j+1] & 0xFF);
 		   rez[j/2] <<= 8;
 		   rez[j/2] |= (values[j] & 0xFF);
 		  // System.out.println(toBin(rez[j],16)+" "+toBin(values[j+1],8));
 	   }
-	   System.out.println("VERIFICARE PASSWORD FINAL");
+	   return rez;
+   }
+   
+   public static short[] passCheckIMG(Mat cov, StringBuilder key)
+   {
+	   String init = "\\str";
+	   byte i, j, k, initLen = (byte) init.length();
+	   short[] rez = new short[3];
+	   byte[] values = new byte[4+initLen];
+
+	   for(i = j = 0; j < 3;j++ )		
+	   {									
+		   cov.get(0, j, rez);
+		   for(k = 0; k < (j == 2? 2: 3); k++)		// extract resolution and initialiser from image			   
+			   values[i++] = (byte)rez[k];		   
+	   }	   	   	   
+	   criptDecriptInfo(values, key, 4+initLen);		// decrypt res + init
+
+	   for(i = 4;i < 4+initLen;i++)						// verify if initialiser is correct
+		   if(values[i] != init.charAt(i-initLen))		
+			   return new short[] {0};
+	   													
+	   rez = byteToRes(values);							// if it is, get hidden image resolution
 	   return rez;
    }
    
    public static Mat ascImgLossless(Mat covCopy, Mat msgCopy, String key) // hides msgCopy (8 bits) inside covCopy(converted to 16 bits)
    {																	// using the least significant 8 bits of each channel of covCopy
-	   String init = "\\str";				// ------------- image initialiser used to validate password, initLen MUST BE 4 -------------
+	   String init = "\\str";				// ------------- image initialiser used to validate password -------------
+	   byte k, initLen = (byte)init.length();
 	   Mat cov = covCopy.clone(),msg = msgCopy.clone();	
 	   StringBuilder keyBuild = new StringBuilder(key);	   
-	   byte val, k, initLen = (byte)init.length();
 	   short i,j;
-	   byte[] values = new byte[8];	   
+	   byte[] values = new byte[4+initLen];	  
 	   short[] pixel = new short[3];
 	   
-	   System.out.println("ASCUNDERE IMAGINE START ");
 	   if(cov.depth() == 0)
 		   cov.convertTo(cov, CvType.CV_16UC3, 255);	   	// convert cover image to 16 bits depth if it isn't already
+	   
 	   if(msg.depth() != 0)
 		   msg.convertTo(msg, CvType.CV_8UC3, 1 / 255.0); 
 	   
@@ -337,25 +343,25 @@ public class OpenCV {
 	   pixel[1] = (short)msg.cols();		// the width and height of message image
 
 	   values = resToByte(pixel);
-	   System.out.println("ASC REZ START "+keyBuild);
-	   for(i = j = 0 ; j < 4 ; )		
-	   {	
-		   criptDecriptInfo(values, keyBuild, initLen);	// encrypt first resolution and then image initialiser    
-		   while(i != initLen)
-		   {
-			   cov.get(0, j, pixel);
-			   for(k = 0;k < 3 && i != initLen;k++)		// write them on the least significant 8 bits of each channel
-			   {	
-				   //  System.out.println("BINAR1: "+toBin(pixel[k],16)+" j="+j+" k="+k+" i="+i+" iLen="+initLen);
-				   pixel[k] &= 0xFF00;
-				   pixel[k] |= (values[i++] & 0xFF);			   
-			   }
-			   cov.put(0, j++, pixel);  
+	   for(i = 4;i < 4+initLen; i++)		// concatenate resolution and initialiser 
+		   values[i] = (byte) init.charAt(i-initLen);
+
+	   
+	   criptDecriptInfo(values, keyBuild, 4+initLen); // encrypt resolution image identifier
+	   
+	   for(i = j = 0; j < 3; j++)		
+	   {   		   
+		   cov.get(0, j, pixel);
+		   for(k = 0;k < (j == 2? 2:3);k++)		// write them on the least significant 8 bits of each channel
+		   {										// of the first 3 pixels
+			   //  System.out.println("BINAR1: "+toBin(pixel[k],16)+" j="+j+" k="+k+" i="+i+" iLen="+initLen);
+			   pixel[k] &= 0xFF00;
+			   pixel[k] |= (values[i++] & 0xFF);
+			//   System.out.println(i+" "+j+" "+k+" "+values[i-1]);
 		   }
-		   i = 0;
-		   values = init.getBytes();
-	  }  
-	   System.out.println(keyBuild);
+		   cov.put(0, j, pixel);  
+	   }
+
 	  values = new byte[3];
 	  criptDecriptMat(msg, keyBuild);
 
@@ -367,14 +373,10 @@ public class OpenCV {
 				 for(k = 0;k<3;k++)
 				 {	 
 					 pixel[k] &= 0xFF00;
-				//	 System.out.println(pixel[k]+" "+toBin(pixel[k],16));
 					 pixel[k] |= (values[k] & 0xFF);
-					//System.out.println(pixel[k]+" "+toBin(pixel[k],16)+" "+values[k]);
-					 //new Scanner(System.in).nextLine();
 				 }	 
 				 cov.put(i, j, pixel);
 		  }
-	  System.out.println("ASCUNDERE IMAGINE END ");
 	  return cov;
    }
    
@@ -393,7 +395,6 @@ public class OpenCV {
 		   return Mat.zeros(0, 0, CvType.CV_8UC3);	// incorrect password
 	   
 	   Mat fin = new Mat(rez[0],rez[1], CvType.CV_8UC3);
-	   System.out.println("TIP FINAL::"+fin.type());
 	   
 	   values = new byte[3];
 	   rez = new short[3];
@@ -430,9 +431,22 @@ public class OpenCV {
 		  out[0] = (byte)((out[0] & maskHechtHide[0]) | ((inp[index] & 0xFF & maskHechtExtract[0]) >> 2));
    }
    
+   public static byte extractHechtMat(byte[] inp)
+   {
+	   byte out = 0;
+	   out |= (byte)((inp[2] & 0xFF & 1) << 7);
+	   //System.out.println(toBin(out,8)+" "+toBin((inp[2] & 0xFF & 1),8));
+	   out |= (byte)((inp[1] & 0xFF & 3) << 5);
+	   //System.out.println(toBin(out,8)+" "+toBin((inp[1] & 0xFF & 3),8));
+	   out |= (byte)((inp[0] & 0xFF & 7) << 2);	
+	   out |= rand.nextInt(4);
+	 //  System.out.println("END:"+toBin(out,8)+" "+toBin((inp[0] & 0xFF & 7),8));
+	   return (byte)(out & 0xFF);
+   }
+   
    public static byte writeHechtInfo(byte[] out, byte inp, byte index) 
    {	  
-	    // prepares resolution and image identifier: only the least  significant bit from [out] elements is changed.
+	    // prepares resolution and image identifier: only the least significant bit from [out] elements is changed.
 	   	// writing [inp] byte from right to left on [out]
 	    byte end = (byte)(index <= 5 ? 3 : 2);
 	    
@@ -443,7 +457,8 @@ public class OpenCV {
    }
    
    public static void extractHechtInfo(byte[] inp, byte[] retn)
-   {
+   {	
+	    // gets least significant bit from [inp] elements and builds a byte
 	   	// retn[0] -> index 
 	   	// retn[1] -> partially extracted byte
 	    byte end = (byte)(retn[0] <= 5 ? 3 : 2);
@@ -453,6 +468,34 @@ public class OpenCV {
 	  // 		System.out.println(inp[k]+" inp: "+toBin(inp[k],8)+" extr: "+toBin(retn[1],8)+" index:"+retn[0]);
 	   	}
 	//  	new Scanner(System.in).nextLine();
+   }
+   
+   public static short[] passCheckHecht(Mat cov, StringBuilder keyBuild)
+   {
+	   String init = "\\hec";
+	   short[] rez = new short[2];
+	   byte k, p, i, initLen = (byte)init.length();
+	   byte[] values = new byte[8], covVal = new byte[3], retn = new byte[2];
+	   
+	   i = 0;
+	   for(k = 0;k < 8;k++)
+	   {
+		   for(p = 0;p < 3;p++)
+		   {
+			   cov.get(0, i++, covVal);
+			   extractHechtInfo(covVal, retn);
+		   }
+		   values[k] = retn[1];
+		   retn[0] = retn[1] = 0;
+	   }	   
+	   criptDecriptInfo(values, keyBuild, 8);
+	   
+	   for(k = 4; k < 4+initLen; k++)						// verify if initialiser is correct
+		   if(values[k] != init.charAt(k-initLen))		
+			   return new short[] {0};
+	   
+	   rez = byteToRes(values);
+	   return rez;
    }
    
    public static Mat ascImgHecht(Mat covCopy, Mat msg, String key)
@@ -482,107 +525,104 @@ public class OpenCV {
 		 //  System.out.println("MSGVAL:"+msgVal[k]+" "+toBin(msgVal[k],8));
 		   for(p = 0;p<3;p++)
 		   {
-			   cov.get(0, i, covVal);
-			//   System.out.println("INITIAL:"+toBin(covVal[0],8)+" "+toBin(covVal[1],8)+" "+toBin(covVal[2],8)+
-			//   				" "+covVal[0]+" "+covVal[1]+" "+covVal[2]);
-			   
+			   cov.get(0, i, covVal);			   
 			   j = writeHechtInfo(covVal, msgVal[k], (byte)j);
-			   
-			 //  System.out.println("FINAAAL:"+toBin(covVal[0],8)+" "+toBin(covVal[1],8)+" "+toBin(covVal[2],8)+
-			//		   " "+covVal[0]+" "+covVal[1]+" "+covVal[2]);
-
 			   cov.put(0, i++, covVal);
 		//	   new Scanner(System.in).nextLine();
 		   }
 		   j = 0;
 	   }
+	   criptDecriptMat(msg,keyBuild);
+	   
 	   y = 1; x = 0;
 	   msgVal = new byte[3];
 	   for(i = 0;i < msg.rows(); i++)
 		   for(j = 0; j < msg.cols(); j++)
 		   {
 			   msg.get(i, j, msgVal);
-			  // System.out.println("MSGVAL:"+msgVal[0]+" "+msgVal[1]+" "+msgVal[2]+" BINARY: "+toBin(msgVal[0],8)+" "+ toBin(msgVal[1],8)+" "+toBin(msgVal[2],8));
+		//	   if(i == 0 && (j >= 0 && j <= 4)) 
+	//		   System.out.println("MSGVAL:"+msgVal[0]+" "+msgVal[1]+" "+msgVal[2]+" BINARY: "+toBin(msgVal[0],8)+" "+ toBin(msgVal[1],8)+" "+toBin(msgVal[2],8));
 			   for(k = 0;k < 3;k++)
 		   	   {
 				   cov.get(y, x, covVal);
+				//	   System.out.println("INITIAL:"+toBin(covVal[0],8)+" "+toBin(covVal[1],8)+" "+toBin(covVal[2],8)+
+				//	   				" "+covVal[0]+" "+covVal[1]+" "+covVal[2]);
 				   writeHechtMat(covVal, msgVal, k);
-				   cov.put(y, x, covVal);
 				   
-				   if(++x == cov.cols())
-				   {
-					   y++;x = 0;
-				   }
-			//	   new Scanner(System.in).nextLine();		  
+				//	if(i == 0 && (j >= 0 && j <= 4))   
+				//			System.out.println("FINAAAL:"+toBin(covVal[0],8)+" "+toBin(covVal[1],8)+" "+toBin(covVal[2],8)+
+				//		   " "+covVal[0]+" "+covVal[1]+" "+covVal[2]);
+				   cov.put(y, x++, covVal);
+				   
+				 //  System.out.println(x+" "+y);
+				 //  new Scanner(System.in).nextLine();
+				   
+				   if(x == cov.cols()){ y++; x = 0; }	  
 			   }
 		   }   
 	   return cov;
    }
-
-   public static short[] passCheckHecht(Mat cov, StringBuilder keyBuild)
-   {
-	   String init = "\\hec";
-	   short[] rez = new short[2];
-	   short i,j;
-	   byte k,p;
-	   byte[] values = new byte[8], covVal = new byte[3], retn = new byte[2];
-	   
-	   i = 0;
-	   for(k = 0;k < 8;k++)
-	   {
-		   for(p = 0;p < 3;p++)
-		   {
-			   cov.get(0, i++, covVal);
-			   extractHechtInfo(covVal, retn);
-		   }
-		   values[k] = retn[1];
-		   retn[0] = retn[1] = 0;
-		   System.out.println(values[k]);
-	   }
-	   
-	   return rez;
-   }
+   
    public static Mat extImgHecht(Mat covCopy, String key)
    {
 	   Mat cov = covCopy.clone();
 	   short i,j,x,y;
-	   byte k,p;
+	   byte k;
 	   short[] rez = new short[2]; 
-	   byte[] msgVal = new byte[8], covVal = new byte[3];
+	   byte[] msgVal = new byte[3], covVal = new byte[3];
 	   StringBuilder keyBuild = new StringBuilder(key);
 	  
+	   rez = passCheckHecht(cov,keyBuild);
+	   if(rez[0] == 0)
+		   return Mat.zeros(0, 0, CvType.CV_8UC3);	// incorrect password
 	   
+	   Mat fin = new Mat(rez[0],rez[1], CvType.CV_8UC3);
 	   
+	   k = 0;
+	   x = y = 0;
+	   for(i = 1;i <= cov.rows(); i++)
+		   for(j = 0; j < cov.cols(); j++)
+		   {
+			   cov.get(i, j, covVal);
+			//   if(i == 1 && (j >= 0 && j <= 10)) 
+			//	   System.out.println("AVEM VAL: "+toBin(covVal[0],8)+" "+toBin(covVal[1],8)+" "+toBin(covVal[2],8)+
+			//			   " "+covVal[0]+" "+covVal[1]+" "+covVal[2]);
+			   msgVal[k++] = extractHechtMat(covVal);
+			 //  if(i == 1 && (j >= 0 && j <= 10)) 
+			 //  System.out.println("EXTRAS: "+msgVal[k-1]);
+			//   new Scanner(System.in).nextLine();
+			   if(k == 3)
+			   {
+				   k = 0;
+				   fin.put(y, x++, msgVal);
+				   if(x == fin.cols()){ y++; x = 0; }	
+			   }			   
+		   }
+	   criptDecriptMat(fin,keyBuild);
+	   return fin;
    }
+   
    public static void main(String[] args){
-	   Mat msg = Highgui.imread("tiger.bmp"), cov = Highgui.imread("western.png"), ster = Highgui.imread("bridge.png"), m;
-	   String key1 = "hmuieponta213", msg1 = "12345", init = "\\st";
+	   Mat msg = Highgui.imread("Samples/bridge.png"), cov = Highgui.imread("Samples/western.png"), 
+			   ster = Highgui.imread("Samples/bridge.png"), m;
+	   String key1 = "hest", msg1 = "12345", init = "\\st";
 	   StringBuilder val = new StringBuilder("hest"); 
 	   byte bt = 1, x,y;
 	   int i,j;
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
-	 //  cov.convertTo(cov, CvType.CV_16UC3);
-	   Highgui.imwrite("steg1a.png", ascImgHecht(cov,msg,key1));
+
+	   m = ascImgHecht(cov,msg,key1);
+	   Highgui.imwrite("tep1.bmp", extImgHecht(m,key1));
+//	   m = ascImgLossless(cov,msg,key1);
+//	   Highgui.imwrite("testInit.png", m);
+//	   m = Highgui.imread("testInit.png",-1);
+//	   Highgui.imwrite("testz.png", extImgLossless(m,key1));
+
+	/*   Highgui.imwrite("steg1a.png", ascImgHecht(cov,msg,key1));
 	   m = Highgui.imread("steg1a.png");
 	   passCheckHecht(m,val);
 	  // Highgui.imwrite("steg1.png", ascImgLossless(cov,msg,key1));
-	   
-/*	   for(i = 0;i < msg.rows(); i++)
-		   for(j = 0; j < msg.cols(); j++){
-			   msg.get(i, j, values);
-
-			   msg.put(i, j, values);
-		   }
-	   Highgui.imwrite("haida.png", msg);
-	   
-	   /*
-	   m = ascImgLossless(cov, msg, key1);
-	   Highgui.imwrite("plsworkHidden.png", m);
-	   m = Highgui.imread("plsworkHidden.png",-1);
-	   m = extImgLossless(m, key1);
-	   Highgui.imwrite("plswork.png", m);
-
 	   
 		/*   for(i = 0;i<=10;i++)
 	   {
