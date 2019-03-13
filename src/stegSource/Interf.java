@@ -9,10 +9,30 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.FlowLayout;
+import javax.swing.SwingConstants;
+import java.awt.BorderLayout;
+import javax.swing.BoxLayout;
+import java.awt.GridLayout;
+import java.awt.Dimension;
+import java.awt.CardLayout;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import java.awt.Component;
+import javax.swing.Box;
+import javax.swing.JLabel;
+import javax.swing.border.SoftBevelBorder;
+import javax.swing.border.BevelBorder;
+import java.awt.Rectangle;
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.Color;
+import java.awt.Cursor;
+import javax.swing.border.EtchedBorder;
 
 public class Interf extends JFrame {
-
-	private JPanel contentPane;
 	static final long serialVersionUID = 1;
 	
 	public static void main(String[] args) {
@@ -29,20 +49,33 @@ public class Interf extends JFrame {
 	}
 
 	public Interf() {
+		setResizable(false);
+		setPreferredSize(new Dimension(200, 200));
+		setMinimumSize(new Dimension(100, 150));
+		setTitle("StegLSB");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		contentPane.setLayout(null);
+		setBounds(100, 100, 442, 310);
+		getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
-		JButton btnTest = new JButton("test1");
-		btnTest.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnTest.setText("TERMINAT!");
-			}
-		});
-		btnTest.setBounds(156, 118, 89, 23);
-		contentPane.add(btnTest);
+		JLabel lblNewLabel = new JLabel("Menu");
+		lblNewLabel.setFont(new Font("Consolas", Font.BOLD, 17));
+		getContentPane().add(lblNewLabel);
+		
+		Component verticalStrut = Box.createVerticalStrut(200);
+		getContentPane().add(verticalStrut);
+		
+		Component horizontalStrut = Box.createHorizontalStrut(500);
+		getContentPane().add(horizontalStrut);
+		
+		JButton btnNewButton = new JButton("Hide");
+		btnNewButton.setFont(new Font("Consolas", Font.BOLD, 15));
+		getContentPane().add(btnNewButton);
+		
+		Component horizontalStrut_1 = Box.createHorizontalStrut(40);
+		getContentPane().add(horizontalStrut_1);
+		
+		JButton btnNewButton_1 = new JButton("Extract");
+		btnNewButton_1.setFont(new Font("Consolas", Font.BOLD, 15));
+		getContentPane().add(btnNewButton_1);
 	}
 }

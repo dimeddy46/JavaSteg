@@ -1,13 +1,18 @@
 package stegSource;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Scanner;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -49,20 +54,18 @@ public class OpenCV {
 	   {
 		   return Integer.parseInt(bin,2);
 	   }
-	  
-	   public static String readFile(String fileName) throws Exception
-	   {
+	   
+	   public static void writeFile(String fileName, byte[] contents) throws IOException
+	   {		
 		   File file = new File(fileName);
-		   BufferedReader br = new BufferedReader(new FileReader(file));
+		   Files.write(file.toPath(),contents);	
+	   }
 	   
-		   String st, rez = ""; 
-		   while ((st = br.readLine()) != null) 
-		   {
-			     rez += st +'\n';
-		   }
-	   
-		   br.close();
-		   return rez;
+	   public static byte[] readFile(String fileName) throws IOException
+	   {		 
+		   File file = new File(fileName);
+		   byte[] fileContents = Files.readAllBytes(file.toPath());
+		   return fileContents;
 	   } 
 // -----------------------------------------------------------------------------------	   
 // ----------------------------- ENCRYPTION ALGORITHM --------------------------------
@@ -297,7 +300,7 @@ public class OpenCV {
 	   byte[] values = new byte[8];	 
 	   
 	   for(byte i = 0;i < 4;i+=2)				// convert resolution from short to byte to correspond with
-	   {										// criptDecriptInfo parameter(can't use generics to do array operations)
+	   {										// criptDecriptInfo parameter(can't use generics to do arithmetic ops)
 		   values[i] = (byte)rez[i/2];		   
 		   values[i+1] = (byte)(rez[i/2] >> 8);
 		   //System.out.println("resToShort: "+(values[i]&0xFF)+" "+toBin(values[i]&0xFF,8));
@@ -599,18 +602,69 @@ public class OpenCV {
 	   return fin;
    }
    
+// --------------------------------------------------------------------------------
+// --------------------------- BINARY HIDING --------------------------------------
+// --------------------------------------------------------------------------------   
+   
+   public static Mat hideExecutable(Mat covCopy, byte[] fileContents, String key)
+   {
+	   Mat cov = covCopy.clone();
+	   int i,j, total;
+	   byte k,p;
+	   short[] pixel = new short[8]; 
+	   byte[] values = new byte[5];
+	   StringBuilder keyBuild = new StringBuilder(key);
+	   String init = "\\exe";
+	   
+	   if(cov.depth() == 0)
+		   cov.convertTo(cov, CvType.CV_16UC3, 255);	   	// convert cover image to 16 bits depth if it isn't already
+	   
+	   total = fileContents.length;	   
+	   for(i = 0;i < 4;i++)				// putting file length on first 4 positions
+	   {
+		   values[i] = (byte)total;
+		   total >>= 8;
+	   	   values[i+4] = (byte)init.charAt(i);	// and initialiser on next 4
+	   }
+	   
+	   criptDecriptInfo(values, keyBuild, 8);				// encrypt length and initialiser
+	   criptDecriptInfo(fileContents, keyBuild, fileContents.length);		// encrypt file
+	   
+	   i = 0;	
+	   for(j = 0;j<4;j++)				// write fileLength on first 4 bytes
+	   {
+		   cov.get(i, j, pixel);
+		   for(k = 0;k < 3;k++)
+			   pixel[k] = (short)((pixel[k] & 0xFF00) | values[i]);
+	   }
+	   									// j starts from 4 and writes the binary array on the least
+	   while(total < fileContents.length)		// significant 8 bits of [cov]
+	   {
+		   cov.get(i, j, pixel);
+		   for(k = 0;k < 3;k++)
+			   pixel[k] = (short)((pixel[k] & 0xFF00) | fileContents[i]);
+		   if(j++ == cov.cols()){ j = 0;i++; }
+	   }
+	   
+	   return cov;
+   }
+
    public static void main(String[] args) throws Exception{
 	   Mat msg = Highgui.imread("Samples/tiger.bmp"), cov = Highgui.imread("Samples/house.bmp"), 
 			   ster = Highgui.imread("Samples/bridge.png"), m;
 	   String key1 = "hest", msg1 = "12345", init = "\\st";
 	   StringBuilder val = new StringBuilder("hest"); 
-	   byte bt = 1, x,y;
-	   int i,j;
+	   byte bt = 1, y;
+	   int i,j,x;
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
 	   
-	   System.out.println(readFile("Samples/tex.txt"));
+	//   System.out.println(new String(readFile("Samples/tex.txt",0)));
+	   byte[] valz = new byte[10];
+	   j = 512412123;
 	   
+
+
 	  // m = ascImgHecht(cov,msg,key1);
 	   //Highgui.imwrite("tep1.jpg", extImgHecht(m,key1));
 //	   m = ascImgLossless(cov,msg,key1);
