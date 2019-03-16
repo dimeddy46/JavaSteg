@@ -32,15 +32,17 @@ import java.awt.Color;
 import java.awt.Cursor;
 import javax.swing.border.EtchedBorder;
 
-public class Interf extends JFrame {
+public class Menu extends JFrame {
 	static final long serialVersionUID = 1;
+	
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Interf frame = new Interf();
+					Menu frame = new Menu();
 					frame.setVisible(true);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -48,34 +50,52 @@ public class Interf extends JFrame {
 		});
 	}
 
-	public Interf() {
-		setResizable(false);
-		setPreferredSize(new Dimension(200, 200));
-		setMinimumSize(new Dimension(100, 150));
+	public Menu() 
+	{
 		setTitle("StegLSB");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 442, 310);
-		getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		setSize(400,300);
+		setMinimumSize(new Dimension(400,300));
+		setLocationRelativeTo(null);
 		
-		JLabel lblNewLabel = new JLabel("Menu");
-		lblNewLabel.setFont(new Font("Consolas", Font.BOLD, 17));
-		getContentPane().add(lblNewLabel);
+		JPanel panel = new JPanel(new GridBagLayout());
+		getContentPane().add(panel);		
 		
-		Component verticalStrut = Box.createVerticalStrut(200);
-		getContentPane().add(verticalStrut);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(5,5,5,5);
+		JLabel title = new JLabel("StegLSB");
+		title.setFont(new Font("Consolas", Font.BOLD, 20));
+		gbc.gridx = 1;
+		gbc.gridy = 0;		
+		panel.add(title, gbc);
+		gbc.weighty = 1;
 		
-		Component horizontalStrut = Box.createHorizontalStrut(500);
-		getContentPane().add(horizontalStrut);
+		JButton hideBtn = new JButton("Hide file");
+		hideBtn.setFont(new Font("Consolas", Font.BOLD, 17));
+		gbc.gridx = 0;
+		gbc.gridy = 2;
+		hideBtn.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{
+				HideForm m = new HideForm();
+				m.setVisible(true);
+			}
+		});
+		panel.add(hideBtn,gbc);
 		
-		JButton btnNewButton = new JButton("Hide");
-		btnNewButton.setFont(new Font("Consolas", Font.BOLD, 15));
-		getContentPane().add(btnNewButton);
-		
-		Component horizontalStrut_1 = Box.createHorizontalStrut(40);
-		getContentPane().add(horizontalStrut_1);
-		
-		JButton btnNewButton_1 = new JButton("Extract");
-		btnNewButton_1.setFont(new Font("Consolas", Font.BOLD, 15));
-		getContentPane().add(btnNewButton_1);
+		JButton extBtn = new JButton(" Extract ");
+		extBtn.setFont(new Font("Consolas", Font.BOLD, 17));
+		gbc.gridx = 2;
+		gbc.gridy = 2;		
+		extBtn.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{
+				ExtractForm m = new ExtractForm();
+				m.setVisible(true);
+			}
+		});
+		panel.add(extBtn,gbc);
 	}
 }
