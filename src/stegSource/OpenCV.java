@@ -75,9 +75,9 @@ public class OpenCV {
 	   
    public static StringBuilder chain(StringBuilder key, int len)
    {
-	   for(int i = len -1;i >= 0;i--)
+	   for(int i = 1;i < len;i++)
 	   {
-		   key.setCharAt(i, (char)(key.charAt(i)+ 1));
+		   key.setCharAt(i, (char)(key.charAt(i)+ 1));	// key[i]++;
 		   if(key.charAt(i) != 126)
 			   break;
 		   else 
@@ -128,17 +128,18 @@ public class OpenCV {
 	   for(int i = 0;i < len;i++)
 	   {
 		   val = key.toString().hashCode();
-		   if(i < 10)System.out.print(i+" IN:"+info[i]+" "+(char)info[i]+" ---- ");
+		   if(i < 100)System.out.print(i+" IN:"+info[i]+" "+(char)info[i]+" ---- ");
 		   while(val != -1 && val != 0)
 		   {
-			   info[i] ^= val;
+			   info[i] ^= (byte)val;
 			   val >>= 8;
 		   }		   
-		  if(i < 10) System.out.print(i+" OUT:"+info[i]+" "+(char)info[i]+" \n");
-		   key.setCharAt(k, (char)(key.charAt(k) + 1));
-		   if(key.charAt(k) == 127)
+		   if(i < 100) System.out.print(i+" OUT:"+info[i]+" "+(char)info[i]+" KEY: "+key+" \n");	
+		  
+		   key.setCharAt(0, (char)(key.charAt(0) + 1)); // key[k]++;
+		   if(key.charAt(0) == 126)
 		   {
-			   key.setCharAt(k, '!');
+			   key.setCharAt(0,'!');
 			   chain(key, k);
 		   }
 	   } 
@@ -295,164 +296,6 @@ public class OpenCV {
 	   return "\\err";
    }
 
-// -----------------------------------------------------------------------------------   
-// ----------------------------- LOSSLESS STEGANOGRAPHY(16 BITS) ---------------------
-// -----------------------------------------------------------------------------------
-	
-   public static byte[] resToByte(short[] rez)
-   {
-	   byte[] values = new byte[8];	 
-	   
-	   for(byte i = 0;i < 4;i+=2)				// convert resolution from short to byte to correspond with
-	   {										// criptDecriptInfo parameter(can't use generics to do arithmetic ops)
-		   values[i] = (byte)rez[i/2];		   
-		   values[i+1] = (byte)(rez[i/2] >> 8);
-	   }
-	   return values;
-   }
-   
-   public static short[] byteToRes(byte[] values)
-   {		   
-	   short[] rez = new short[3];
-	   for(byte j = 0; j < 4;j+=2)				
-	   {		   
-		   rez[j/2] |= (values[j+1] & 0xFF);
-		   rez[j/2] <<= 8;
-		   rez[j/2] |= (values[j] & 0xFF);
-	   } 
-	   return rez;
-   }  
-   
-   public static short[] passCheckLossless(Mat cov, StringBuilder keyBuild)	// combined lossless image and file check
-   {
-	   String[] init = {"\\str","\\exe"};	// initialisers for lossless image hiding and executable
-	   byte i, j, k;
-	   short[] rez = new short[3];
-	   byte[] values = new byte[8];
-	   System.out.println("START EXTRAGERE");
-	   
-	   for(i = j = 0; j < 3; j++)				// extract resolution(4 bytes) and initialiser (4 bytes) from image	
-	   {									
-		   cov.get(0, j, rez);
-		   for(k = 0; k < 3 && i < 8; k++){				   
-			   values[i++] = (byte)rez[k];
-			   System.out.println(rez[k]);
-		   }
-	   }	
-	   for(i = 0;i<8;i++)
-		   System.out.print(values[i]+" ");
-	   System.out.println();
-	   
-	   criptDecriptInfo(values, keyBuild, 8);		// decrypt res + init
-	   
-	   j = 0;
-	   while(j != 2)
-	   {
-		   for(i = 4;i < 8;i++)				// verify if one initialiser is correct						
-			   if((values[i] != init[j].charAt(i-4)))		
-				   break;
-		   
-		   if(i == 8)
-		   { 
-			   rez = byteToRes(values);
-			   
-			   if(j == 0) rez[2] = 1;		// image hidden inside	   
-			   else rez[2] = 2;		// file hidden inside	   	   
-			   
-			   return rez;
-		   }
-		   j++;
-	   }
-	   return new short[] {0,0,0};			// incorrect password
-   }
-   
-   public static Mat hideImgLossless(Mat covCopy, Mat msgCopy, String key) 
-   {												// hides msgCopy (8 bits) inside covCopy(converted to 16 bits)						
-	   String init = "\\str";						// using the least significant 8 bits of each channel of covCopy
-	   Mat cov = covCopy.clone(),msg = msgCopy.clone();	
-	   byte k, initLen = (byte)init.length();
-	   StringBuilder keyBuild = new StringBuilder(key);	   
-	   short i,j;
-	   byte[] values = new byte[4+initLen];
-	   short[] pixel = new short[3];
-	   
-	   if(msg.rows() * msg.cols() > cov.rows() * cov.cols()) // message is bigger than cover
-		   return Mat.zeros(1, 1, CvType.CV_8UC3);
-	   
-	   if(cov.depth() == 0)
-		   cov.convertTo(cov, CvType.CV_16UC3, 255);	   	// convert cover image to 16 bits depth if it isn't already
-	   
-	   if(msg.depth() != 0)
-		   msg.convertTo(msg, CvType.CV_8UC3, 1 / 255.0); 
-	   
-	   pixel[0] = (short)msg.rows();		// using short var to store and process 
-	   pixel[1] = (short)msg.cols();		// the width and height of message image
-
-	   values = resToByte(pixel);
-	   for(i = 4;i < 4+initLen; i++)		// concatenate resolution and initialiser 
-		   values[i] = (byte) init.charAt(i-initLen);
-
-	   
-	   criptDecriptInfo(values, keyBuild, 4+initLen); // encrypt 
-	   
-	   for(i = j = 0; j < 3; j++)		
-	   {   		   
-		   cov.get(0, j, pixel);
-		   for(k = 0;k < (j == 2? 2:3);k++)		// and write them on the least significant 8 bits of each channel
-		   {									// of the first 3 pixels
-			   pixel[k] &= 0xFF00;
-			   pixel[k] |= (values[i++] & 0xFF);
-		   }
-		   cov.put(0, j, pixel);  
-	   }
-
-	  values = new byte[3];
-	  criptDecriptMat(msg, keyBuild);
-
-	  for (i = 1; i < msg.rows() + 1; i++) 
-		  for (j = 0; j < msg.cols(); j++) 
-		  {
-				 msg.get(i-1, j, values);
-				 cov.get(i,j,pixel);
-				 for(k = 0;k<3;k++)
-				 {	 
-					 pixel[k] &= 0xFF00;
-					 pixel[k] |= (values[k] & 0xFF);
-				 }	 
-				 cov.put(i, j, pixel);
-		  }
-	  return cov;
-   }
-   
-   public static Mat extImgLossless(Mat covCopy, String key) 
-   {
-	   Mat cov = covCopy.clone();
-	   short i,j,k;
-	   short[] rez = new short[3];
-	   byte[] values = new byte[4];
-	   StringBuilder keyBuild = new StringBuilder(key);
-	   
-	   rez = passCheckLossless(cov, keyBuild);
-
-	   if(rez[2] != 1) 			
-		   return Mat.zeros(1, 1, CvType.CV_8UC3);	// incorrect password
-
-	   Mat fin = new Mat(rez[0], rez[1], CvType.CV_8UC3);
-	   
-	   values = new byte[3];
-	   
-	   for(i = 1;i <= fin.rows(); i++)
-		   for(j = 0; j < fin.cols(); j++)
-		   {
-			   cov.get(i, j, rez);
-			   for(k = 0;k < 3;k++)			   	
-				   values[k] = (byte)rez[k]; 
-			   
-			   fin.put(i-1, j, values);
-		   }
-	   criptDecriptMat(fin,keyBuild);
-	   return fin;
-   }
 
 // --------------------------------------------------------------------------------
 // --------------------------- HECHT STEGANOGRAPHY --------------------------------
@@ -616,9 +459,33 @@ public class OpenCV {
    }
    
 // --------------------------------------------------------------------------------
-// --------------------------- BINARY HIDING --------------------------------------
+// --------------------------- LOSSLESS STEGANOGRAPHY(16 BITS) --------------------------------------
 // --------------------------------------------------------------------------------   
+	
+   public static byte[] resToByte(short[] rez)
+   {
+	   byte[] values = new byte[8];	 
+	   
+	   for(byte i = 0;i < 4;i+=2)				// convert resolution from short to byte to correspond with
+	   {										// criptDecriptInfo parameter(can't use generics to do arithmetic ops)
+		   values[i] = (byte)rez[i/2];		   
+		   values[i+1] = (byte)(rez[i/2] >> 8);
+	   }
+	   return values;
+   }
    
+   public static short[] byteToRes(byte[] values)
+   {		   
+	   short[] rez = new short[3];
+	   for(byte j = 0; j < 4;j+=2)				
+	   {		   
+		   rez[j/2] |= (values[j+1] & 0xFF);
+		   rez[j/2] <<= 8;
+		   rez[j/2] |= (values[j] & 0xFF);
+	   } 
+	   return rez;
+   }  
+     
    public static int byteToInt(byte[] values)
    {
 	   int rez = 0, j;
@@ -630,11 +497,38 @@ public class OpenCV {
    
    public static int resToInt(short[] values)		// values[1] are MS 16 bits and values[0] are LS 16 bits
    {
-	   int rez = 0;			
+	   int rez = 0;		
+	   
 	   rez = rez | (values[1] & 0xFFFF);
 	   rez <<= 16;	   
 	   rez |= (values[0] & 0xFFFF);
+	   
 	   return rez;
+   }
+   
+   public static short[] passCheckLossless(Mat cov, StringBuilder keyBuild)	// combined lossless image and file check
+   {
+	   String init = "\\exe";	// initialisers for lossless image hiding and executable
+	   byte i, j, k;
+	   short[] rez = new short[3];
+	   byte[] values = new byte[8];
+	   
+	   for(i = j = 0; j < 3; j++)				// extract resolution(4 bytes) and initialiser (4 bytes) from image	
+	   {									
+		   cov.get(0, j, rez);
+		   for(k = 0; k < 3 && i < 8; k++){				   
+			   values[i++] = (byte)rez[k];
+			   System.out.println(rez[k]);
+		   }
+	   }	
+	   System.out.println("CHECK:"+keyBuild);
+	   criptDecriptInfo(values, keyBuild, 8);		// decrypt res + init
+	   System.out.println("CHECK:"+keyBuild);
+	   for(i = 4;i < 8;i++)				// verify if one initialiser is correct						
+		   if((values[i] != init.charAt(i-4)))		
+			   return new short[] {0};	
+
+	   return byteToRes(values);			// incorrect password
    }
    
    public static Mat hideBinaryFile(Mat covCopy, byte[] fileContents, String key)
@@ -662,18 +556,13 @@ public class OpenCV {
 	   }
 	   
 	   criptDecriptInfo(values, keyBuild, 8);		// encrypt length, initialiser and file
-	   criptDecriptInfo(fileContents, keyBuild, fileContents.length);
-	   
-	   System.out.println("ASCUNS:");
-	   for(i = 0;i<8;i++)
-		   System.out.print(values[i]+" ");
-	   System.out.println();	  	
+	   criptDecriptInfo(fileContents, keyBuild, fileContents.length);  	
 	   
 	   for(j = i = 0;j < 3;j++)					// write fileLength on first 4 bytes
 	   {
 		   cov.get(0, j, pixel);
 		   for(k = 0;k < 3 && i < 8;k++)
-			   pixel[k] = (short)((pixel[k] & 0xFF00) | values[i++]);
+			   pixel[k] = (short)((pixel[k] & 0xFF00) | (values[i++] & 0xFF));
 		   
 		   cov.put(0, j, pixel);
 	   }
@@ -683,7 +572,7 @@ public class OpenCV {
 	   {
 		   cov.get(i, j, pixel);
 		   for(k = 0;k < 3 && total < fileContents.length;k++)
-			   pixel[k] = (short)((pixel[k] & 0xFF00) | fileContents[total++]);
+			   pixel[k] = (short)((pixel[k] & 0xFF00) | (fileContents[total++]& 0xFF));
 		   
 		   cov.put(i, j++, pixel);
 		   if(j == cov.cols()){ j = 0;i++; }
@@ -701,9 +590,9 @@ public class OpenCV {
 	   
 	   pixel = passCheckLossless(cov, keyBuild);	// extracted file size on 2 short vars.
 	   
-	   if(pixel[2] != 2)			//incorrect password
+	   if(pixel.length == 1)			//incorrect password
 		   return new byte[] {0};
-	   				
+			
 	   byte[] fileContents = new byte[resToInt(pixel)]; // resToInt => compose short to make int variable
 	   
 	   i = 0; j = 3;total = 0;
@@ -711,30 +600,45 @@ public class OpenCV {
 	   {
 		   cov.get(i, j, pixel);
 		   for(k = 0;k < 3 && total < fileContents.length ;k++)			   	
-			   fileContents[total++] = (byte)pixel[k]; 
+			   fileContents[total++] = (byte)(pixel[k] & 0xFF); 
 		   if(++j == cov.cols()){ j = 0;i++; }
 	   }
-	   
+	   System.out.println("EXT:"+keyBuild);
 	   criptDecriptInfo(fileContents, keyBuild, total);
+	   System.out.println("EXT:"+keyBuild);
 	   return fileContents;	   
    }
   
-   public static void main(String[] args) throws Exception{
+   public static void main(String[] args) throws Exception
+   {
 	   Mat msg = Highgui.imread("Samples/bridge.png"), cov = Highgui.imread("Samples/house.bmp"), 
 			   ster = Highgui.imread("Samples/bridge.png"), m;
-	   String key1 = "hest", msg1 = "12345", init = "\\st";
+	   String key1 = "hestin", msg1 = "12345";
 	   StringBuilder val = new StringBuilder("hest"); 
 	   byte bt = 1, y;
 	   int i,j,x;
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
+//	  System.out.println( key1.substring(key1.lastIndexOf('.'), key1.length()));
 	   
-	   byte[] valz = readFile("Samples/Galois.exe");
-	  // writeFile("mere.exe",valz);
-	   System.out.println(valz.length);
-	   m = hideBinaryFile(cov, valz, key1);
-	   if(m.rows() != 1)writeFile("mere.exe",extBinaryFile(m,key1));
+	  System.out.println("meret".hashCode()+" "+"teres".hashCode());
+	    byte[] valz = readFile("Samples/western.png");
+	   System.out.println(valz.length);	   	
+	   Highgui.imwrite("hidden.png", hideBinaryFile(cov, valz, key1));
 	   
+	   m = Highgui.imread("hidden.png",-1);
+	   if(m.rows() != 1 ){
+		  
+		   System.out.println("citit img");
+		   key1 ="hesting";
+		   values = extBinaryFile(m,key1);
+		   if(values.length == 1)
+		   {
+			   System.out.println(values.length+" pass gresit");return;
+			}
+		   writeFile("mere2.png",values);
+		   	
+	   }
 	  /* byte[] valz = readFile("Samples/Galois.exe");
 	   Highgui.imwrite("Samples/tes.png", hideBinaryFile(cov, valz, key1));*/
 	    
