@@ -27,10 +27,9 @@ public class OpenCV {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
 
-	public static final byte[] maskHechtExtract = { 28, 96, -128};	// B(3 bit) G(2 bits) R(1 bit)
-	public static final byte[] maskHechtHide =  { -8, -4, -2}; // B G R
-	public static final String[] initStr = {"\\st", "\\str", "\\hec", "\\exe"};	// text, lossless, hecht, executable
-	public static Random rand = new Random();
+	private static final byte[] maskHechtExtract = { 28, 96, -128};	// B(3 bit) G(2 bits) R(1 bit)
+	private static final byte[] maskHechtHide =  { -8, -4, -2}; // B G R
+	private static Random rand = new Random();
 
 	// -----------------------------------------------------------------------------------
 // ------------------------------------- UTILS ---------------------------------------
@@ -620,9 +619,9 @@ public class OpenCV {
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
 //	  System.out.println( key1.substring(key1.lastIndexOf('.'), key1.length()));
-	   
-	  System.out.println("meret".hashCode()+" "+"teres".hashCode());
-	    byte[] valz = readFile("Samples/western.png");
+
+	   System.out.println("meret".hashCode()+" "+"teres".hashCode());
+	   byte[] valz = readFile("Samples/western.png");
 	   System.out.println(valz.length);	   	
 	   Highgui.imwrite("hidden.png", hideBinaryFile(cov, valz, key1));
 	   
