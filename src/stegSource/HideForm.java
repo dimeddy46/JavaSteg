@@ -11,9 +11,6 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
@@ -27,19 +24,26 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
+
+@SuppressWarnings("serial")
 public class HideForm extends JFrame {
-	private String covFileName,msgFileName;
-	int xR = 850, yR = 460;
+	String covFileName, msgFileName, defDir = null;
+	int xImg, yImg;
+	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 					HideForm frame = new HideForm();
 					frame.setVisible(true);
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -48,13 +52,21 @@ public class HideForm extends JFrame {
 	}
 
 	public HideForm() throws IOException {
-		setTitle("Hide binary file");
+		setTitle("StegLSB");
 		setSize(770,460);
 		setMinimumSize(new Dimension(770,460));
 		setResizable(false);	
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+		 try {
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); 
+	        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	    } 
+	    catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) 
+		 {       
+		 }
+
+
 		String[] modes = { "Hecht", "LSB(text)", "Lossless" };
 		
 		JPanel panel = new JPanel(new GridBagLayout());
@@ -111,21 +123,20 @@ public class HideForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;
 		gbc.anchor = GridBagConstraints.PAGE_START;
-		covImg.setBounds(100, 0, 330, 185);
-		covImg.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-		covImg.setIcon(new ImageIcon(ImageIO.read(new File("mere2.png")).getScaledInstance(covImg.getWidth(),
-				covImg.getHeight(), Image.SCALE_SMOOTH)));		
+		covImg.setBounds(100, 0, 340, 185);
+		covImg.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));	
+		xImg = covImg.getWidth();
+		yImg = covImg.getHeight();		
+		covImg.setPreferredSize(new Dimension(xImg, yImg));
 		panel.add(covImg,gbc);
-
 		
 		gbc.gridx = 2;
 		gbc.gridy = 4;
-		msgImg.setBounds(100, 0, 330, 185);		
+		msgImg.setBounds(100, 0, 340, 185);		
 		msgImg.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
-		msgImg.setIcon(new ImageIcon(ImageIO.read(new File("hidden.png")).getScaledInstance(msgImg.getWidth(),
-				msgImg.getHeight(), Image.SCALE_SMOOTH)));			
+		msgImg.setPreferredSize(new Dimension(xImg, yImg));
 		panel.add(msgImg,gbc);
-				
+		
 		gbc.gridx = 0;
 		gbc.gridy = 6;
 		hideMode.setSelectedIndex(0);
@@ -158,27 +169,45 @@ public class HideForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				JFileChooser fc = new JFileChooser();				
+				JFileChooser fc = new JFileChooser();						
+				if(defDir != null)
+					fc.setCurrentDirectory(new File(defDir));
+				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
-					covFileName = fc.getSelectedFile().getName();
-					covTxt.setText("<html>File: <font color='red'>"+covFileName+"</font><br/>Size: "
+					covFileName = fc.getSelectedFile().toString();
+					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+"</font><br/>Size: "
 							+fc.getSelectedFile().length()+" bytes</html>");
+					try {
+						covImg.setIcon(new ImageIcon(ImageIO.read(fc.getSelectedFile()).
+							   getScaledInstance(xImg,yImg, Image.SCALE_SMOOTH)));
+					} catch (IOException e1) {}	
+					
+					defDir = fc.getCurrentDirectory().toString();
 				}
 			}
 		});
 		
 		msgBtn.addActionListener(new ActionListener() 
 		{
-			public void actionPerformed(ActionEvent e) 
+			public void actionPerformed(ActionEvent e)
 			{
 				JFileChooser fc = new JFileChooser();				
+				if(defDir != null)
+					fc.setCurrentDirectory(new File(defDir));
+				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
-					msgFileName = fc.getSelectedFile().getName();
-					msgTxt.setText("<html>File: <font color='red'>"+msgFileName+"</font><br/>Size: "
+					msgFileName = fc.getSelectedFile().toString();
+					msgTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+"</font><br/>Size: "
 							+fc.getSelectedFile().length()+" bytes</html>");
-					gbc.weighty = 1;
+					try {
+						msgImg.setIcon(new ImageIcon(ImageIO.read(fc.getSelectedFile()).
+							   getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
+					} 
+					catch (IOException e1) {}
+					
+					defDir = fc.getCurrentDirectory().toString();
 				}
 			}
 		});
@@ -187,6 +216,28 @@ public class HideForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
+				Mat cov = Highgui.imread(covFileName), msg = Highgui.imread(msgFileName);
+				if(pwdInput.getText().length() <= 3)
+				{
+					System.out.println("pwd scurt");
+					return;
+				}
+				
+				Mat rez = OpenCV.hideImgHecht(cov, msg, pwdInput.getText());
+				
+				if(rez.rows() == 1)
+				{
+					System.out.println("Cover image must be 3 times bigger than message");
+					return;
+				}
+				
+				JFileChooser fc = new JFileChooser();
+				fc.setCurrentDirectory(new File(defDir));
+				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
+				{
+					Highgui.imwrite(fc.getSelectedFile().toString(), rez);
+				}		
+				title.setText("Image hidden succesfully: "+fc.getSelectedFile().getName());
 			}
 		});
 		getContentPane().add(panel);

@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.awt.event.ActionEvent;
 import java.awt.FlowLayout;
 import javax.swing.SwingConstants;
@@ -78,8 +79,15 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				HideForm m = new HideForm();
-				m.setVisible(true);
+				HideForm m;
+				try {
+					m = new HideForm();
+					
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
 			}
 		});
 		panel.add(hideBtn,gbc);
