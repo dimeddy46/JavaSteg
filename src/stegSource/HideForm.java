@@ -30,33 +30,49 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.BevelBorder;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 
 import javafx.stage.Screen;
+import resources.ResourceLoader;
 
 @SuppressWarnings("serial")
-	public class HideForm extends JFrame {
+public class HideForm extends JFrame {
 
-	String covFileName = null, msgFileName = null, defDir = null;
-	int xImg = 340, yImg = 185;
-		
+	String covFileName, msgFileName, defDir, memoMsgStr = "";
+	int xImg = 340, yImg = 200;
+	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
-			public void run() {
+			public void run() {				
 				try {
-					System.loadLibrary(Core.NATIVE_LIBRARY_NAME);				
-					HideForm frame = new HideForm();
-					frame.setVisible(true);
-
-				} catch (Exception e) {
-					e.printStackTrace();
+					 System.loadLibrary(Core.NATIVE_LIBRARY_NAME);	
+				     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+				     new HideForm().setVisible(true);
+			    } 
+				catch (IOException ex){
+					System.out.println("sss");
+					return;
 				}
+				catch (UnsatisfiedLinkError e) {
+					System.out.println("DLL");
+					return;
+				}
+			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
+			    		InstantiationException | IllegalAccessException e)  {  } 
+				
 			}
 		});
 	}
+	
+	private static void infoBox(String infoMessage)
+    {
+        JOptionPane.showMessageDialog(null, infoMessage, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+	
 	private boolean checkFileExtension(String str, String[] exts)
 	{
 		if(str == null)
@@ -74,10 +90,24 @@ import javafx.stage.Screen;
 		return false;
 	}
 	
-	private static void infoBox(String infoMessage)
-    {
-        JOptionPane.showMessageDialog(null, infoMessage, "Error", JOptionPane.ERROR_MESSAGE);
-    }
+	private static String toMillions(long n)	// converts an number to a string with commas after every 3 digits
+	{
+		StringBuilder str = new StringBuilder(Long.toString(n));
+		String rez = "";
+		int i, ct = 3, len = str.length();
+		
+		for(i = 0;i < len / 3; i++)
+		{
+			rez = ","+str.substring(len-ct, len-ct+3) + rez;
+			ct += 3;
+		}
+		
+		rez = str.substring(0, len % 3) + rez;		
+		if(rez.charAt(0) == ',')
+			return rez.substring(1,rez.length());
+		return rez;
+	}
+   
 	
 	public HideForm() throws IOException {
 	//	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -88,12 +118,6 @@ import javafx.stage.Screen;
 		setResizable(false);	
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		try {
-			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-	        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-	    } 
-	    catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) 
-		{  }
 		
 		String[] modes = { "Hecht", "LSB(text)", "Lossless" };
 		
@@ -119,10 +143,12 @@ import javafx.stage.Screen;
 		JTextArea msgInput = new JTextArea();	
 		
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(3,3,3,3);		
+		gbc.insets = new Insets(3,3,3,3);	
+		
 		// title
 		gbc.gridx = 0;
 		gbc.gridy = 0;	
+		gbc.anchor = GridBagConstraints.PAGE_START;
 		gbc.gridwidth = 3;
 		title.setFont(new Font("Consolas", Font.BOLD, 22));
 		panel.add(title, gbc);
@@ -140,8 +166,7 @@ import javafx.stage.Screen;
 		msgBtn.setFont(new Font("Consolas", Font.BOLD, 14));
 		panel.add(msgBtn,gbc);
 		
-		// cover label(below cover button)
-		gbc.anchor = GridBagConstraints.PAGE_START;
+		// cover label(below cover button)		
 		gbc.gridx = 0;
 		gbc.gridy = 2;	
 		covTxt.setFont(new Font("Consolas", Font.BOLD, 15));
@@ -151,40 +176,38 @@ import javafx.stage.Screen;
 		gbc.gridx = 2;
 		gbc.gridy = 2;		
 		msgTxt.setFont(new Font("Consolas", Font.BOLD, 15));
-		panel.add(msgTxt, gbc);
-			
-		//gbc.insets = new Insets(0,0,0,0);
+		panel.add(msgTxt, gbc);			
 		
-		// cover image repres.	
+		// image cover repres.	
 		gbc.weighty = 1;
 		gbc.weightx = 1;		
 		gbc.gridx = 0;
 		gbc.gridy = 4;
-		gbc.anchor = GridBagConstraints.PAGE_START;
+		gbc.anchor = GridBagConstraints.PAGE_START;		
+		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
 		covImg.setBounds(0, 0, xImg, yImg);
-		covImg.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));	
 		covImg.setPreferredSize(new Dimension(xImg, yImg));
 		panel.add(covImg,gbc);
 		
-		// message text input (text area)	
+		// text input message (text area)	
 		gbc.gridx = 2;				// when mode is changed to LSB(text) it becomes visible
 		gbc.gridy = 4;		    			    			    		
-		msgInput.setPreferredSize(new Dimension(340,185));
+		msgInput.setPreferredSize(new Dimension(xImg, yImg));
 		msgInput.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
 		msgInput.setLineWrap(true);
 		msgInput.setFont(new Font("Consolas", Font.BOLD, 14));
 		msgInput.setVisible(false);
 		panel.add(msgInput, gbc);
 		
-		// message image repres.	
+		// image message repres.	
 		gbc.gridx = 2;				// Hecht mode -> showing message image
 		gbc.gridy = 4;
 		msgImg.setBounds(0, 0, xImg, yImg);		
-		msgImg.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+		msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
 		msgImg.setPreferredSize(new Dimension(xImg, yImg));
 		panel.add(msgImg,gbc);
 		
-		// hide mode label
+		// label hide mode
 		gbc.gridx = 0;
 		gbc.gridy = 5;
 		gbc.anchor = GridBagConstraints.PAGE_END;
@@ -224,24 +247,23 @@ import javafx.stage.Screen;
 		hideModeCombo.addActionListener (new ActionListener () {
 		    public void actionPerformed(ActionEvent e) 
 		    {	
-		        if(hideModeCombo.getSelectedIndex() == 0)
+		    	int index = hideModeCombo.getSelectedIndex();
+		        if(index == 0 || index == 2)
 		        {
 		        	msgInput.setVisible(false);
 		        	msgImg.setVisible(true);
-		        	msgTxt.setText("<html><br/><br/></html>");		        	
+		        	msgTxt.setText(memoMsgStr);
 		        }
-		        else if(hideModeCombo.getSelectedIndex() == 1)
-		        {
+		        else if(index == 1)
+		        {		        	
 		        	msgInput.setVisible(true);
 		        	msgImg.setVisible(false);	
+		        	memoMsgStr = msgTxt.getText();
 		    		msgTxt.setText("<html>Select a .txt file, or<br/> enter your message here:</html>");		        			    		
-		        }
-		        else if(hideModeCombo.getSelectedIndex() == 2)
-		        {
-		        	msgImg.setVisible(false);
-		        }		        
+		        }	        
 		    }
 		});
+		
 		covBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
@@ -252,8 +274,8 @@ import javafx.stage.Screen;
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
-					BufferedImage img;
-					int sizeImg;					
+					BufferedImage img = null;
+					int sizeImg = 0;					
 					
 					if(!checkFileExtension(fc.getSelectedFile().toString(), new String[]{".png",".bmp"}))
 					{
@@ -262,18 +284,17 @@ import javafx.stage.Screen;
 					}
 					
 					try {
-						img = ImageIO.read(fc.getSelectedFile());
-					} catch (Exception e1) {
-						System.out.println("EXCP");
-						return;
-					}		
-					covFileName = fc.getSelectedFile().toString();
-					sizeImg = img.getHeight() * img.getWidth() * 3;
-					covImg.setIcon(new ImageIcon(img.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
+						img = ImageIO.read(fc.getSelectedFile());						
+						sizeImg = img.getHeight() * img.getWidth() * 3;
+						covImg.setIcon(new ImageIcon(img.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
+					} 
+					catch (Exception e1) { }		
+					
 					
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								  "</font><br/>Size: "+sizeImg+" bytes</html>");	
+								  "</font><br/>Size: "+toMillions(sizeImg)+" bytes</html>");	
 					
+					covFileName = fc.getSelectedFile().toString();
 					defDir = fc.getCurrentDirectory().toString();
 				}
 			}
@@ -292,28 +313,31 @@ import javafx.stage.Screen;
 					BufferedImage img;
 					long sizeFile = 0;
 					int index = hideModeCombo.getSelectedIndex();
-										
-					if(index == 0)
+					try {
+						sizeFile = fc.getSelectedFile().length();
+						img = ImageIO.read(fc.getSelectedFile());
+						msgImg.setIcon(new ImageIcon(img.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
+					} 
+					catch (Exception e1) 
 					{
-						try {
-							img = ImageIO.read(fc.getSelectedFile());
-							sizeFile = img.getHeight() * img.getWidth() * 3;
-							msgImg.setIcon(new ImageIcon(img.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
-						} 
-						catch (Exception e1) {
-							infoBox("Invalid file. Please select a image file for Hecht steganography.");
+						if(index == 0)
+						{
+							infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
 							return;
 						}
-					}
-					else if((index == 1 && checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"})) || index == 2 )
-					{
-						sizeFile =	fc.getSelectedFile().length();								
-					}
-					
-					msgFileName = fc.getSelectedFile().toString();					
+						else if(index == 1 && !checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"})){
+							infoBox("Invalid file. A text file is required for LSB hiding mode.");
+							return;	
+						}														
+						else if(index == 2)
+							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));							
+					}				
+																			
 					msgTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								   "</font><br/>Size: "+sizeFile+" bytes</html>");				
+								   "</font><br/>Size: "+toMillions(sizeFile)+" bytes</html>");	
 					
+					msgFileName = fc.getSelectedFile().toString();	
+					memoMsgStr = msgTxt.getText();					
 					defDir = fc.getCurrentDirectory().toString();
 				}
 			}
@@ -324,11 +348,21 @@ import javafx.stage.Screen;
 			public void actionPerformed(ActionEvent e) 
 			{
 				Mat cov, msg, rez = null;
-				String pwd = pwdInput.getText();
+				String pwd = pwdInput.getText(), strMessage = msgInput.getText();
 				int index = hideModeCombo.getSelectedIndex();
-				String strMessage = msgInput.getText();
 				
-				if( covFileName == null || ((index == 1 && strMessage.length() == 0) && (index == 1 && msgFileName == null)) ) 
+				// if a text file is selected and mode = LSB(text), overwrite the msgInput text
+				if(index == 1 && checkFileExtension(msgFileName, new String[]{".txt"}) )	
+					strMessage = new String(OpenCV.readFile(msgFileName));	
+				
+				if(strMessage.indexOf("\\") != -1)
+				{
+					infoBox("Character \\ is not permited. Please change your message.");
+					return;
+				}
+				
+				if((index == 0 && (covFileName == null || msgFileName == null)) ||
+					(index == 1 && strMessage.length() == 0) )
 				{
 					infoBox("You must select both cover and message file.");
 					return;
@@ -342,27 +376,32 @@ import javafx.stage.Screen;
 				}
 				
 				if(index == 0)
-				{
+				{	
+					if(!checkFileExtension(covFileName, new String[]{".bmp,",".png",".jpg"}))
+					{
+						msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));	
+						msgFileName = null;
+						infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
+						return;
+					}
 					msg = Highgui.imread(msgFileName);
 					rez = OpenCV.hideImgHecht(cov, msg, pwd);
 				}
-				else if(index == 1)
-				{
-					if(checkFileExtension(msgFileName, new String[]{".txt"}))	// if a text file is selected
-						strMessage = new String(OpenCV.readFile(msgFileName));		// overwrite the msgInput text
-					rez = OpenCV.hideImgText(cov, strMessage, pwd);
-				}
+				else if(index == 1)						
+					rez = OpenCV.hideImgText(cov, strMessage, pwd);			
 				else if(index == 2)
 					rez = OpenCV.hideLosslessFile(cov, OpenCV.readFile(msgFileName), pwd);
 				
 				if(rez.rows() == 1)
 				{
-					infoBox("The message file is bigger than cover file or an invalid file has been selected.");				
+					infoBox("The message file is bigger than cover file or an empty message file has been selected.\n"
+							+ "For Hecht the required cover must be 3 times bigger than the message.");				
 					return;
 				}
 				
 				JFileChooser fc = new JFileChooser();
 				fc.setCurrentDirectory(new File(defDir));
+				
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
 					pwd = fc.getSelectedFile().toString();  // if no extension or an invalid one is provided, assign .png	
@@ -372,10 +411,10 @@ import javafx.stage.Screen;
 					Highgui.imwrite(pwd, rez);	
 					title.setText("Image hidden succesfully!");
 					
-					Desktop dt = Desktop.getDesktop();
-				    try{ 				    
-					   dt.open(new File(pwd));
-					   dt.open(new File(covFileName));
+					Desktop dt = Desktop.getDesktop();	// compare original cover with embedded cover
+				    try{ 
+				       dt.open(new File(covFileName));
+					   dt.open(new File(pwd));					  
 					}
 				   catch(IOException ex){}
 				}	

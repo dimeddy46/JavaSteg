@@ -2,55 +2,55 @@ package stegSource;
 
 
 import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import org.opencv.core.Core;
+
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.awt.event.ActionEvent;
-import java.awt.FlowLayout;
-import javax.swing.SwingConstants;
-import java.awt.BorderLayout;
-import javax.swing.BoxLayout;
-import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Dimension;
-import java.awt.CardLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import java.awt.Component;
-import javax.swing.Box;
 import javax.swing.JLabel;
-import javax.swing.border.SoftBevelBorder;
-import javax.swing.border.BevelBorder;
-import java.awt.Rectangle;
+import javax.swing.JOptionPane;
+
+import resources.ResourceLoader;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.Color;
-import java.awt.Cursor;
-import javax.swing.border.EtchedBorder;
 
 public class Menu extends JFrame {
 	static final long serialVersionUID = 1;
-	
+	public static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
+					    fileImage = ResourceLoader.loadImage("file.png");
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
-			public void run() {
+			public void run() {				
 				try {
-					Menu frame = new Menu();
-					frame.setVisible(true);
-					
-				} catch (Exception e) {
-					e.printStackTrace();
+					 System.loadLibrary(Core.NATIVE_LIBRARY_NAME);	
+				     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			    } 
+				catch (UnsatisfiedLinkError e) {
+					infoBox("opencv_java2413.dll not found.");
+					return;
 				}
+			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
+			    		InstantiationException | IllegalAccessException e)  {  } 
+				
+				new Menu().setVisible(true);						
 			}
 		});
 	}
-
+	private static void infoBox(String infoMessage)
+    {
+        JOptionPane.showMessageDialog(null, infoMessage, "Error", JOptionPane.ERROR_MESSAGE);
+    }
 	public Menu() 
 	{
 		setTitle("StegLSB");
@@ -79,12 +79,9 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				HideForm m;
 				try {
-					m = new HideForm();
-					
+					 new HideForm().setVisible(true);					
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				
@@ -100,8 +97,7 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				ExtractForm m = new ExtractForm();
-				m.setVisible(true);
+				new ExtractForm().setVisible(true);
 			}
 		});
 		panel.add(extBtn,gbc);

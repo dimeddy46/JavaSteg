@@ -162,13 +162,11 @@ public class OpenCV {
 			   for(k = 0;k < 3;k++)
 			   {
 				   buffer.append(toBin(pixel[k], 8).substring(8 - bt, 8));
-				   System.out.println("BUFF:" +buffer+ " k"+k+" j"+j);
 				   if(buffer.length() >= 8)
 				   {   
 					   lit = (char)toDec(buffer.substring(0, 8));
 					   msg += lit;
 					   buffer.delete(0, 8); 
-					   System.out.println("LITERA:"+(byte)lit+" "+msg);
 				   }
 			   }
 		   }		   
@@ -198,8 +196,10 @@ public class OpenCV {
 	   
 	   // ---- init ------- EOS  
 	   msg = "\\st" + msg + "\\";
-	   encrypt = msg.getBytes();
+	   encrypt = msg.getBytes();	  
 	   len = msg.length(); 
+	   if(len <= 4)
+		   return Mat.zeros(1, 1, CvType.CV_8U);
 	   
 	   byte bt = 1;
 	   while((cov.rows() * cov.cols() * 3) / (8.0 / bt) < len * (8.0 / bt))	// choosing amount of LSB (bt) to write on
@@ -528,11 +528,12 @@ public class OpenCV {
 	   byte k;
 	   short[] pixel = new short[3]; 
 	   byte[] values = new byte[8];
-	   
+	  
 	   if(fileContents == null) 
 		   return Mat.zeros(1, 1, CvType.CV_8UC3);
 	   
 	   total = fileContents.length;		   
+	   System.out.println(total+ " "+ (cov.cols()*cov.rows()*3 - 12));
 	   if(total > cov.cols()*cov.rows()*3 - 12)
 		   return Mat.zeros(1, 1, CvType.CV_8UC3);
 	   
@@ -599,7 +600,7 @@ public class OpenCV {
 	   System.out.println("EXT:"+keyBuild);
 	   return fileContents;	   
    }
-  
+   
    public static void main(String[] args) throws Exception
    {
 	   Mat msg = Highgui.imread("Samples/bridge.png"), cov = Highgui.imread("Samples/house.bmp"), 
@@ -610,24 +611,19 @@ public class OpenCV {
 	   int i,j,x;
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
-//	  System.out.println( key1.substring(key1.lastIndexOf('.'), key1.length()));
-	   System.out.println(key1);
-/*
-	   System.out.println("meret".hashCode()+" "+"teres".hashCode());
-	   byte[] valz = readFile("Samples/western.png");
-	   System.out.println(valz.length);	   	
+	 //  System.out.println(toMillions(3333323));
+/*	   byte[] valz = readFile("Samples/western.png");
+	   System.out.println("LUNG:"+valz.length);	   	
 	   Highgui.imwrite("hidden.png",  hideLosslessFile(cov, valz, key1));
-	  
+	   
 	   m = Highgui.imread("hidden.png",-1);
 	   if(m.rows() != 1 ){
-		  
-		   System.out.println("citit img");
-		   key1 ="hesting";
 		   values = extLosslessFile(m,key1);
 		   if(values.length == 1)
 		   {
-			   System.out.println(values.length+" pass gresit");return;
-			}
+			   System.out.println(values.length+" pass gresit");
+			   return;
+		   }
 		   writeFile("mere2.png",values);
 		   	
 	   }
