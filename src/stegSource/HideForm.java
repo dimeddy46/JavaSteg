@@ -53,10 +53,6 @@ public class HideForm extends JFrame {
 				     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 				     new HideForm().setVisible(true);
 			    } 
-				catch (IOException ex){
-					System.out.println("sss");
-					return;
-				}
 				catch (UnsatisfiedLinkError e) {
 					System.out.println("DLL");
 					return;
@@ -109,7 +105,7 @@ public class HideForm extends JFrame {
 	}
    
 	
-	public HideForm() throws IOException {
+	public HideForm() {
 	//	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	//	int xRes = (int)screenSize.getWidth();
 	//	int yRes = (int)screenSize.getHeight();				
@@ -314,8 +310,8 @@ public class HideForm extends JFrame {
 					long sizeFile = 0;
 					int index = hideModeCombo.getSelectedIndex();
 					try {
-						sizeFile = fc.getSelectedFile().length();
 						img = ImageIO.read(fc.getSelectedFile());
+						sizeFile = img.getHeight() * img.getWidth() * 3;
 						msgImg.setIcon(new ImageIcon(img.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
 					} 
 					catch (Exception e1) 
@@ -325,14 +321,18 @@ public class HideForm extends JFrame {
 							infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
 							return;
 						}
-						else if(index == 1 && !checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"})){
+						else if(index == 1 && !checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"}))
+						{
 							infoBox("Invalid file. A text file is required for LSB hiding mode.");
 							return;	
 						}														
-						else if(index == 2)
-							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));							
+						else if(index == 2)						
+							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
+						
 					}				
-																			
+					if(index == 1)	
+						sizeFile = fc.getSelectedFile().length();	
+
 					msgTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
 								   "</font><br/>Size: "+toMillions(sizeFile)+" bytes</html>");	
 					
@@ -348,7 +348,7 @@ public class HideForm extends JFrame {
 			public void actionPerformed(ActionEvent e) 
 			{
 				Mat cov, msg, rez = null;
-				String pwd = pwdInput.getText(), strMessage = msgInput.getText();
+				String key = pwdInput.getText(), strMessage = msgInput.getText();
 				int index = hideModeCombo.getSelectedIndex();
 				
 				// if a text file is selected and mode = LSB(text), overwrite the msgInput text
@@ -369,7 +369,7 @@ public class HideForm extends JFrame {
 				}
 				cov = Highgui.imread(covFileName);
 				
-				if(pwd.length() <= 3)
+				if(key.length() <= 3)
 				{
 					infoBox("Password can't be shorter than 4 characters.");
 					return;
@@ -385,12 +385,12 @@ public class HideForm extends JFrame {
 						return;
 					}
 					msg = Highgui.imread(msgFileName);
-					rez = OpenCV.hideImgHecht(cov, msg, pwd);
+					rez = OpenCV.hideImgHecht(cov, msg, key);
 				}
 				else if(index == 1)						
-					rez = OpenCV.hideImgText(cov, strMessage, pwd);			
+					rez = OpenCV.hideImgText(cov, strMessage, key);			
 				else if(index == 2)
-					rez = OpenCV.hideLosslessFile(cov, OpenCV.readFile(msgFileName), pwd);
+					rez = OpenCV.hideLosslessFile(cov, OpenCV.readFile(msgFileName), key);
 				
 				if(rez.rows() == 1)
 				{
@@ -404,17 +404,17 @@ public class HideForm extends JFrame {
 				
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
-					pwd = fc.getSelectedFile().toString();  // if no extension or an invalid one is provided, assign .png	
-					if(!checkFileExtension(pwd, new String[]{".png",".bmp"}))
-						pwd += ".png";	
+					key = fc.getSelectedFile().toString();  // if no extension or an invalid one is provided, assign .png	
+					if(!checkFileExtension(key, new String[]{".png",".bmp"}))
+						key += ".png";	
 					
-					Highgui.imwrite(pwd, rez);	
+					Highgui.imwrite(key, rez);	
 					title.setText("Image hidden succesfully!");
 					
 					Desktop dt = Desktop.getDesktop();	// compare original cover with embedded cover
 				    try{ 
 				       dt.open(new File(covFileName));
-					   dt.open(new File(pwd));					  
+					   dt.open(new File(key));					  
 					}
 				   catch(IOException ex){}
 				}	

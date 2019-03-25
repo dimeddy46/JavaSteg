@@ -238,9 +238,9 @@ public class OpenCV {
 	return cov;
    }
    
-   public static String extImgText(Mat img, String key, byte bt)
+   public static String extImgText(Mat img, String key)
    {
-	   bt = passCheckMSG(img,key);
+	   byte bt = passCheckMSG(img,key);
 	   if(bt == 0) return "\\pwdincorect";
 	   System.out.println(bt);
 	   
@@ -583,7 +583,7 @@ public class OpenCV {
 	   pixel = passCheckLossless(cov, keyBuild);	// extracted file size on 2 short vars.
 	   
 	   if(pixel.length == 1)			//incorrect password
-		   return new byte[] {0};
+		   return null;
 			
 	   byte[] fileContents = new byte[resToInt(pixel)]; // resToInt => compose short to make int variable
 	   
@@ -595,12 +595,38 @@ public class OpenCV {
 			   fileContents[total++] = (byte)(pixel[k] & 0xFF); 
 		   if(++j == cov.cols()){ j = 0;i++; }
 	   }
-	   System.out.println("EXT:"+keyBuild);
+	   
 	   criptDecriptInfo(fileContents, keyBuild, total);
 	   System.out.println("EXT:"+keyBuild);
 	   return fileContents;	   
    }
-   
+   static boolean isPalindrom(String s)
+   {
+      char start = s.charAt(0);
+      int len = s.length(),i;
+      for(i = 0;i < len;i++)
+         if(start != s.charAt(i))
+            if(!(len % 2 == 1 && i == len / 2))
+               return false;
+      return true;
+   }
+   static long substrCount(int n, String s) {
+       String sub;
+       int i, ltr = 2, substrCount = n;
+       while(ltr <= n){
+		   for(i = 0;i <= n-ltr; i++)
+		   {
+		       sub = s.substring(i,i+ltr);
+		       
+		       if(isPalindrom(sub)){
+		    	   System.out.println(sub);
+		           substrCount++;   
+		       }
+		   }
+		   ltr++;
+       }
+       return substrCount;
+   }
    public static void main(String[] args) throws Exception
    {
 	   Mat msg = Highgui.imread("Samples/bridge.png"), cov = Highgui.imread("Samples/house.bmp"), 
@@ -611,8 +637,9 @@ public class OpenCV {
 	   int i,j,x;
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
-	 //  System.out.println(toMillions(3333323));
-/*	   byte[] valz = readFile("Samples/western.png");
+
+	   System.out.println(substrCount("aabzaaaaaaaa".length(),"aabzaaaaaaaa"));
+	/*   byte[] valz = readFile("Samples/western.png");
 	   System.out.println("LUNG:"+valz.length);	   	
 	   Highgui.imwrite("hidden.png",  hideLosslessFile(cov, valz, key1));
 	   

@@ -79,12 +79,7 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				try {
-					 new HideForm().setVisible(true);					
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				
+				 new HideForm().setVisible(true);									
 			}
 		});
 		panel.add(hideBtn,gbc);

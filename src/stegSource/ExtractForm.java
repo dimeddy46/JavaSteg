@@ -13,6 +13,9 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
+
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import javax.swing.JLabel;
@@ -51,27 +54,12 @@ public class ExtractForm extends JFrame {
 			}
 		});
 	}
+	
 	private static void infoBox(String infoMessage)
     {
         JOptionPane.showMessageDialog(null, infoMessage, "Error", JOptionPane.ERROR_MESSAGE);
     }
 	
-	private boolean checkFileExtension(String str, String[] exts)
-	{
-		if(str == null)
-			return false;
-		
-		int x = str.lastIndexOf(".");		
-		if(x == -1)
-			return false;
-		
-		str = str.substring(x, str.length());
-		
-		for(String s : exts)
-			if(str.equals(s))
-				return true;
-		return false;
-	}
 	
 	private static String toMillions(long n)	// converts an number to a string with commas after every 3 digits
 	{
@@ -112,29 +100,31 @@ public class ExtractForm extends JFrame {
 		
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(3,3,3,3);
-		gbc.weighty = 1;
 		
-		title.setFont(new Font("Consolas", Font.BOLD, 20));
+		gbc.weighty = 1;			
 		gbc.gridx = 0;
 		gbc.gridy = 0;	
 		gbc.gridwidth = 3;
 		gbc.anchor = GridBagConstraints.PAGE_START;
+		title.setFont(new Font("Consolas", Font.BOLD, 20));
 		panel.add(title, gbc);		
 		
+		gbc.weighty = 2;
 		gbc.gridwidth = 1;
 		gbc.gridx = 0;
 		gbc.gridy = 1;	
 		covBtn.setFont(new Font("Consolas", Font.BOLD, 14));			
 		panel.add(covBtn,gbc);
 		
-		// cover label(below cover button)		
+		// cover label(below cover button)	
+		gbc.weighty = 3;
 		gbc.gridx = 0;
 		gbc.gridy = 2;	
-		gbc.anchor = GridBagConstraints.PAGE_END;
+		gbc.anchor = GridBagConstraints.PAGE_START;
 		covTxt.setFont(new Font("Consolas", Font.BOLD, 15));
 		panel.add(covTxt, gbc);
 		
-		gbc.weighty = 100;	
+		gbc.weighty = 50;	
 		gbc.gridx = 0;
 		gbc.gridy = 3;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
@@ -151,7 +141,6 @@ public class ExtractForm extends JFrame {
 		pwdTxt.setFont(new Font("Consolas", Font.BOLD, 17));
 		panel.add(pwdTxt, gbc);
 		
-		gbc.weighty = 100;	
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.WEST;
@@ -161,8 +150,7 @@ public class ExtractForm extends JFrame {
 		
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
-		gbc.anchor = GridBagConstraints.EAST;
-		//gbc.weighty = 3;		
+		gbc.anchor = GridBagConstraints.EAST;		
 		confirmBtn.setFont(new Font("Consolas", Font.BOLD, 15));	
 		panel.add(confirmBtn, gbc);
 		
@@ -197,5 +185,35 @@ public class ExtractForm extends JFrame {
 		});
 		
 
-	}
+		confirmBtn.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{	
+				String key = pwdInput.getText(), msg;
+				Mat cov = Highgui.imread(covFileName),msg2;
+				byte[] msg3;
+				
+				if((msg = OpenCV.extImgText(cov, key)) != "\\pwdincorect")
+				{
+					System.out.println("GASIT ASCUNS TEXT:"+msg);
+					return;
+				}
+				if((msg2 = OpenCV.extImgHecht(cov, key)).cols() != 1)
+				{
+					System.out.println("GASIT");
+					Highgui.imwrite("hecht1.png", msg2);
+					return;
+				}
+			 
+				cov = Highgui.imread(covFileName, -1 ); // read 16 bits images
+
+				if(cov.depth() != 0 && (msg3 = OpenCV.extLosslessFile(cov, key)) != null)
+				{
+					OpenCV.writeFile("test.exe", msg3);
+					return;
+				}
+				System.out.println("The password is invalid or no data is hidden inside the file.");
+			}
+		});
+	}	
 }
