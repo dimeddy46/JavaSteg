@@ -55,30 +55,6 @@ public class ExtractForm extends JFrame {
 		});
 	}
 	
-	private static void infoBox(String infoMessage)
-    {
-        JOptionPane.showMessageDialog(null, infoMessage, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-	
-	
-	private static String toMillions(long n)	// converts an number to a string with commas after every 3 digits
-	{
-		StringBuilder str = new StringBuilder(Long.toString(n));
-		String rez = "";
-		int i, ct = 3, len = str.length();
-		
-		for(i = 0;i < len / 3; i++)
-		{
-			rez = ","+str.substring(len-ct, len-ct+3) + rez;
-			ct += 3;
-		}
-		
-		rez = str.substring(0, len % 3) + rez;		
-		if(rez.charAt(0) == ',')
-			return rez.substring(1,rez.length());
-		return rez;
-	}
-	
 	public ExtractForm() 
 	{		
 		setTitle("StegLSB");
@@ -171,13 +147,13 @@ public class ExtractForm extends JFrame {
 						covImg.setIcon(new ImageIcon(img.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
 					} 
 					catch (Exception e1) { 
-						infoBox("Invalid file. Please select an image as your cover.");
+						Menu.infoBox("Invalid file. Please select an image as your cover.");
 						return;
 					}	
 					
 					covFileName = fc.getSelectedFile().toString();
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								  "</font><br/>Size: "+toMillions(fc.getSelectedFile().length())+" bytes</html>");	
+								  "</font><br/>Size: "+Menu.toMillions(fc.getSelectedFile().length())+" bytes</html>");	
 					
 					defDir = fc.getCurrentDirectory().toString();
 				}
@@ -189,30 +165,24 @@ public class ExtractForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{	
-				String key = pwdInput.getText(), msg;
+				int c = 0;
+				JFileChooser fc = new JFileChooser();
+				String key = pwdInput.getText(), msg = null;
 				Mat cov = Highgui.imread(covFileName),msg2;
 				byte[] msg3;
 				
-				if((msg = OpenCV.extImgText(cov, key)) != "\\pwdincorect")
-				{
-					System.out.println("GASIT ASCUNS TEXT:"+msg);
-					return;
-				}
-				if((msg2 = OpenCV.extImgHecht(cov, key)).cols() != 1)
-				{
-					System.out.println("GASIT");
-					Highgui.imwrite("hecht1.png", msg2);
-					return;
-				}
-			 
-				cov = Highgui.imread(covFileName, -1 ); // read 16 bits images
+				if((msg2 = OpenCV.extImgHecht(cov, key)).cols() != 1)  c = 1;				     
+				else if((msg = new String(OpenCV.extImgText(cov, key))) != "\\pwdincorect") c = 2;	
+				System.out.println(msg);
+		/*// read 16 bits images
+				cov = Highgui.imread(covFileName, -1 ); 
+				if(cov.depth() != 0 && (msg3 = OpenCV.extLosslessFile(cov, key)) != null) c = 3;
 
-				if(cov.depth() != 0 && (msg3 = OpenCV.extLosslessFile(cov, key)) != null)
+				if(c == 0)
 				{
-					OpenCV.writeFile("test.exe", msg3);
+					infoBox("The password is invalid or no data is hidden inside the file.");
 					return;
-				}
-				System.out.println("The password is invalid or no data is hidden inside the file.");
+				} */
 			}
 		});
 	}	

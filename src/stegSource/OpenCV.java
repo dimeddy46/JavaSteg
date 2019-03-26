@@ -144,7 +144,7 @@ public class OpenCV {
 // ---------------------------------- TEXT STEG -------------------------------------
 //-----------------------------------------------------------------------------------
   
-   public static byte passCheckMSG(Mat img, String key)
+   public static byte passCheckText(Mat img, String key)
   {
 	   char lit;
 	   String msg = "", init = "\\st";
@@ -238,10 +238,10 @@ public class OpenCV {
 	return cov;
    }
    
-   public static String extImgText(Mat img, String key)
+   public static byte[] extImgText(Mat img, String key)
    {
-	   byte bt = passCheckMSG(img,key);
-	   if(bt == 0) return "\\pwdincorect";
+	   byte bt = passCheckText(img,key);
+	   if(bt == 0) return "\\pwdincorect".getBytes();
 	   System.out.println(bt);
 	   
 	   char countLit = 0;
@@ -275,13 +275,13 @@ public class OpenCV {
 							if(contain != -1)
 							{
 								System.out.println(msg.length()+" "+contain);
-								return msg.substring(3, msg.length() - 10 + contain);
+								return msg.substring(3, msg.length() - 10 + contain).getBytes();
 							}
 						}
 					}	
 				}
 			}   	   
-	   return "\\err";
+	   return "\\err".getBytes();
    }
 
 
@@ -397,10 +397,10 @@ public class OpenCV {
 	   
 	   y = 1; x = 0;
 	   msgVal = new byte[3];
-	   for(i = 0;i < msg.rows(); i++)
-		   for(j = 0; j < msg.cols(); j++)
-		   {
-			   msg.get(i, j, msgVal);
+	   for(i = 0;i < msg.rows(); i++)			// each msg byte is written on the cover's LSB using from:
+		   for(j = 0; j < msg.cols(); j++)		// B channel -> 3 bits
+		   {									// G channel -> 2 bits
+			   msg.get(i, j, msgVal);			// R channel -> 1 bit
 			   for(k = 0;k < 3;k++)
 		   	   {
 				   cov.get(y, x, covVal);
@@ -600,6 +600,7 @@ public class OpenCV {
 	   System.out.println("EXT:"+keyBuild);
 	   return fileContents;	   
    }
+   
    static boolean isPalindrom(String s)
    {
       char start = s.charAt(0);

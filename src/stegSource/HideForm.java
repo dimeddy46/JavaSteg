@@ -63,48 +63,7 @@ public class HideForm extends JFrame {
 			}
 		});
 	}
-	
-	private static void infoBox(String infoMessage)
-    {
-        JOptionPane.showMessageDialog(null, infoMessage, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-	
-	private boolean checkFileExtension(String str, String[] exts)
-	{
-		if(str == null)
-			return false;
 		
-		int x = str.lastIndexOf(".");		
-		if(x == -1)
-			return false;
-		
-		str = str.substring(x, str.length());
-		
-		for(String s : exts)
-			if(str.equals(s))
-				return true;
-		return false;
-	}
-	
-	private static String toMillions(long n)	// converts an number to a string with commas after every 3 digits
-	{
-		StringBuilder str = new StringBuilder(Long.toString(n));
-		String rez = "";
-		int i, ct = 3, len = str.length();
-		
-		for(i = 0;i < len / 3; i++)
-		{
-			rez = ","+str.substring(len-ct, len-ct+3) + rez;
-			ct += 3;
-		}
-		
-		rez = str.substring(0, len % 3) + rez;		
-		if(rez.charAt(0) == ',')
-			return rez.substring(1,rez.length());
-		return rez;
-	}
-   
-	
 	public HideForm() {
 	//	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	//	int xRes = (int)screenSize.getWidth();
@@ -273,9 +232,9 @@ public class HideForm extends JFrame {
 					BufferedImage img = null;
 					int sizeImg = 0;					
 					
-					if(!checkFileExtension(fc.getSelectedFile().toString(), new String[]{".png",".bmp"}))
+					if(!Menu.checkFileExtension(fc.getSelectedFile().toString(), new String[]{".png",".bmp"}))
 					{
-						infoBox("Invalid file. Please select an image as your cover.");
+						Menu.infoBox("Invalid file. Please select an image as your cover.");
 						return;
 					}
 					
@@ -288,7 +247,7 @@ public class HideForm extends JFrame {
 					
 					
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								  "</font><br/>Size: "+toMillions(sizeImg)+" bytes</html>");	
+								  "</font><br/>Size: "+Menu.toMillions(sizeImg)+" bytes</html>");	
 					
 					covFileName = fc.getSelectedFile().toString();
 					defDir = fc.getCurrentDirectory().toString();
@@ -318,12 +277,12 @@ public class HideForm extends JFrame {
 					{
 						if(index == 0)
 						{
-							infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
+							Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
 							return;
 						}
-						else if(index == 1 && !checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"}))
+						else if(index == 1 && !Menu.checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"}))
 						{
-							infoBox("Invalid file. A text file is required for LSB hiding mode.");
+							Menu.infoBox("Invalid file. A text file is required for LSB hiding mode.");
 							return;	
 						}														
 						else if(index == 2)						
@@ -334,7 +293,7 @@ public class HideForm extends JFrame {
 						sizeFile = fc.getSelectedFile().length();	
 
 					msgTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								   "</font><br/>Size: "+toMillions(sizeFile)+" bytes</html>");	
+								   "</font><br/>Size: "+Menu.toMillions(sizeFile)+" bytes</html>");	
 					
 					msgFileName = fc.getSelectedFile().toString();	
 					memoMsgStr = msgTxt.getText();					
@@ -352,36 +311,36 @@ public class HideForm extends JFrame {
 				int index = hideModeCombo.getSelectedIndex();
 				
 				// if a text file is selected and mode = LSB(text), overwrite the msgInput text
-				if(index == 1 && checkFileExtension(msgFileName, new String[]{".txt"}) )	
+				if(index == 1 && Menu.checkFileExtension(msgFileName, new String[]{".txt"}) )	
 					strMessage = new String(OpenCV.readFile(msgFileName));	
 				
 				if(strMessage.indexOf("\\") != -1)
 				{
-					infoBox("Character \\ is not permited. Please change your message.");
+					Menu.infoBox("Character \\ is not permited. Please change your message.");
 					return;
 				}
 				
 				if((index == 0 && (covFileName == null || msgFileName == null)) ||
 					(index == 1 && strMessage.length() == 0) )
 				{
-					infoBox("You must select both cover and message file.");
+					Menu.infoBox("You must select both cover and message file.");
 					return;
 				}
 				cov = Highgui.imread(covFileName);
 				
 				if(key.length() <= 3)
 				{
-					infoBox("Password can't be shorter than 4 characters.");
+					Menu.infoBox("Password can't be shorter than 4 characters.");
 					return;
 				}
 				
 				if(index == 0)
 				{	
-					if(!checkFileExtension(covFileName, new String[]{".bmp,",".png",".jpg"}))
+					if(!Menu.checkFileExtension(covFileName, new String[]{".bmp,",".png",".jpg"}))
 					{
 						msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));	
 						msgFileName = null;
-						infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
+						Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
 						return;
 					}
 					msg = Highgui.imread(msgFileName);
@@ -394,7 +353,7 @@ public class HideForm extends JFrame {
 				
 				if(rez.rows() == 1)
 				{
-					infoBox("The message file is bigger than cover file or an empty message file has been selected.\n"
+					Menu.infoBox("The message file is bigger than cover file or an empty message file has been selected.\n"
 							+ "For Hecht the required cover must be 3 times bigger than the message.");				
 					return;
 				}
@@ -405,7 +364,7 @@ public class HideForm extends JFrame {
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
 					key = fc.getSelectedFile().toString();  // if no extension or an invalid one is provided, assign .png	
-					if(!checkFileExtension(key, new String[]{".png",".bmp"}))
+					if(!Menu.checkFileExtension(key, new String[]{".png",".bmp"}))
 						key += ".png";	
 					
 					Highgui.imwrite(key, rez);	

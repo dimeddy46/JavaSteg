@@ -47,10 +47,46 @@ public class Menu extends JFrame {
 			}
 		});
 	}
-	private static void infoBox(String infoMessage)
+	
+	public static void infoBox(String infoMessage)
     {
         JOptionPane.showMessageDialog(null, infoMessage, "Error", JOptionPane.ERROR_MESSAGE);
     }
+	
+	public static String toMillions(long n)	// converts an number to a string with commas after every 3 digits
+	{
+		StringBuilder str = new StringBuilder(Long.toString(n));
+		String rez = "";
+		int i, ct = 3, len = str.length();
+		
+		for(i = 0;i < len / 3; i++)
+		{
+			rez = ","+str.substring(len-ct, len-ct+3) + rez;
+			ct += 3;
+		}
+		
+		rez = str.substring(0, len % 3) + rez;		
+		if(rez.charAt(0) == ',')
+			return rez.substring(1,rez.length());
+		return rez;
+	}
+	
+	public static boolean checkFileExtension(String str, String[] exts)
+	{
+		if(str == null)
+			return false;
+		
+		int x = str.lastIndexOf(".");		
+		if(x == -1)
+			return false;
+		
+		str = str.substring(x, str.length());
+		
+		for(String s : exts)
+			if(str.equals(s))
+				return true;
+		return false;
+	}
 	public Menu() 
 	{
 		setTitle("StegLSB");
