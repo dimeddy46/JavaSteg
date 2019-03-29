@@ -50,7 +50,7 @@ public class Menu extends JFrame {
 	
 	public static void infoBox(String infoMessage)
     {
-        JOptionPane.showMessageDialog(null, infoMessage, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);
     }
 	
 	public static String toMillions(long n)	// converts an number to a string with commas after every 3 digits
@@ -71,19 +71,24 @@ public class Menu extends JFrame {
 		return rez;
 	}
 	
-	public static boolean checkFileExtension(String str, String[] exts)
+	public static String getFileExtension(String file)
 	{
-		if(str == null)
-			return false;
+		if(file == null)
+			return "";
 		
-		int x = str.lastIndexOf(".");		
+		int x = file.lastIndexOf(".");		
 		if(x == -1)
-			return false;
+			return ".txt";
 		
-		str = str.substring(x, str.length());
+		return file.substring(x, file.length());
+	}
+	
+	public static boolean checkFileExtension(String file, String[] exts)
+	{
+		file = getFileExtension(file);
 		
 		for(String s : exts)
-			if(str.equals(s))
+			if(file.equals(s))
 				return true;
 		return false;
 	}

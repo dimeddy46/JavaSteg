@@ -287,10 +287,10 @@ public class HideForm extends JFrame {
 						}														
 						else if(index == 2)						
 							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
-						
+							
 					}				
-					if(index == 1)	
-						sizeFile = fc.getSelectedFile().length();	
+					if(index == 1 || index == 2)	
+						sizeFile = fc.getSelectedFile().length();
 
 					msgTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
 								   "</font><br/>Size: "+Menu.toMillions(sizeFile)+" bytes</html>");	
@@ -349,7 +349,7 @@ public class HideForm extends JFrame {
 				else if(index == 1)						
 					rez = OpenCV.hideImgText(cov, strMessage, key);			
 				else if(index == 2)
-					rez = OpenCV.hideLosslessFile(cov, OpenCV.readFile(msgFileName), key);
+					rez = OpenCV.hideLosslessFile2(cov, OpenCV.readFile(msgFileName), key, Menu.getFileExtension(msgFileName));
 				
 				if(rez.rows() == 1)
 				{

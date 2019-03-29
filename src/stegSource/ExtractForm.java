@@ -64,7 +64,7 @@ public class ExtractForm extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JPanel panel = new JPanel(new GridBagLayout());
-		JLabel title = new JLabel("Extract data from image");				
+		JLabel title = new JLabel("Extract hidden data");				
 		
 		JButton covBtn = new JButton("Select cover");
 		JLabel covTxt = new JLabel("<html><br/><br/></html>");		
@@ -77,16 +77,17 @@ public class ExtractForm extends JFrame {
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(3,3,3,3);
 		
+		// title	
 		gbc.weighty = 1;			
 		gbc.gridx = 0;
 		gbc.gridy = 0;	
-		gbc.gridwidth = 3;
+		gbc.gridwidth = 1;
 		gbc.anchor = GridBagConstraints.PAGE_START;
 		title.setFont(new Font("Consolas", Font.BOLD, 20));
 		panel.add(title, gbc);		
 		
+		// cover button	
 		gbc.weighty = 2;
-		gbc.gridwidth = 1;
 		gbc.gridx = 0;
 		gbc.gridy = 1;	
 		covBtn.setFont(new Font("Consolas", Font.BOLD, 14));			
@@ -134,6 +135,7 @@ public class ExtractForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{	
+				title.setText("Extract hidden data");
 				JFileChooser fc = new JFileChooser();						
 				if(defDir != null)
 					fc.setCurrentDirectory(new File(defDir));
@@ -165,24 +167,57 @@ public class ExtractForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{	
-				int c = 0;
+				boolean found = false;
 				JFileChooser fc = new JFileChooser();
-				String key = pwdInput.getText(), msg = null;
-				Mat cov = Highgui.imread(covFileName),msg2;
-				byte[] msg3;
+				String key = pwdInput.getText(), msgStr = null, fileName;
+				Mat cov = Highgui.imread(covFileName), msgMat;
+				byte[] msgByte;
 				
-				if((msg2 = OpenCV.extImgHecht(cov, key)).cols() != 1)  c = 1;				     
-				else if((msg = new String(OpenCV.extImgText(cov, key))) != "\\pwdincorect") c = 2;	
-				System.out.println(msg);
-		/*// read 16 bits images
-				cov = Highgui.imread(covFileName, -1 ); 
-				if(cov.depth() != 0 && (msg3 = OpenCV.extLosslessFile(cov, key)) != null) c = 3;
-
-				if(c == 0)
+				if((msgMat = OpenCV.extImgHecht(cov, key)).cols() != 1)
 				{
-					infoBox("The password is invalid or no data is hidden inside the file.");
-					return;
-				} */
+					Menu.infoBox("A hidden IMAGE has been found.\n\n Please choose a save location.");
+					if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
+					{
+						 fileName = fc.getSelectedFile().toString();
+						 if(!Menu.checkFileExtension(fileName, new String[]{".png",".bmp",".jpg"}))
+							 fileName += ".png";						 
+						 Highgui.imwrite(fileName, msgMat);
+						 found = true;
+					}
+					else return;
+				}
+				else if((msgStr = OpenCV.extImgText(cov, key)) != "\\pwdincorect")
+				{
+					Menu.infoBox("A TEXT file has been found. Please choose a save location.");
+					if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
+					{
+						 fileName = fc.getSelectedFile().toString();
+						 if(!Menu.checkFileExtension(fileName, new String[]{".txt"}))
+							 fileName += ".txt";						 
+						 OpenCV.writeFile(fileName, msgStr.getBytes());
+						 found = true;
+					}
+					else return;
+				}
+				
+				cov = Highgui.imread(covFileName, -1); 
+				if(cov.depth() != 0 && (msgByte = OpenCV.extLosslessFile2(cov, key)) != null )
+				{
+					String fileType = OpenCV.getExt();
+					Menu.infoBox("A "+fileType.toUpperCase()+" file has been found. Please choose a save location.");
+					if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
+					{
+						 fileName = fc.getSelectedFile().toString()+fileType;						 				 
+						 OpenCV.writeFile(fileName, msgByte);
+						 found = true;
+					}
+					else return;
+				}
+				
+				if(found == true)
+					title.setText("<html><font color='green'>The file has been extracted!</font></html>");
+				else 
+					Menu.infoBox("The password is invalid or no data is hidden inside the file.");
 			}
 		});
 	}	
