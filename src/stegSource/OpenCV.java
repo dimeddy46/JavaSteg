@@ -735,7 +735,8 @@ public class OpenCV {
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
 	   
-	   String file = "Samples/western.png";
+					   
+	   /*String file = "Samples/western.png";
 	   Mat rezf = hideLosslessFile2(cov, OpenCV.readFile(file), 
 				 key1, Menu.getFileExtension(file));
 	  byte[] fis = extLosslessFile2(rezf, key1);

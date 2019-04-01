@@ -23,11 +23,13 @@ import javax.swing.JOptionPane;
 import resources.ResourceLoader;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.Toolkit;
 
 public class Menu extends JFrame {
 	static final long serialVersionUID = 1;
 	public static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
 					    fileImage = ResourceLoader.loadImage("file.png");
+	static double univScale = 1.0;
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -94,6 +96,8 @@ public class Menu extends JFrame {
 	}
 	public Menu() 
 	{
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		univScale = screenSize.getWidth() > 1440? screenSize.getWidth() / 1440 : 1.0;
 		setTitle("StegLSB");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(400,300);
@@ -105,7 +109,7 @@ public class Menu extends JFrame {
 		
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(5,5,5,5);
-		JLabel title = new JLabel("StegLSB");
+		JLabel title = new JLabel("Menu");
 		title.setFont(new Font("Consolas", Font.BOLD, 20));
 		gbc.gridx = 1;
 		gbc.gridy = 0;		
@@ -120,7 +124,8 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				 new HideForm().setVisible(true);									
+				 new HideForm().setVisible(true);	
+				 
 			}
 		});
 		panel.add(hideBtn,gbc);

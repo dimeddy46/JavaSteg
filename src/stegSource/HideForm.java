@@ -12,6 +12,8 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +46,7 @@ public class HideForm extends JFrame {
 
 	String covFileName, msgFileName, defDir, memoMsgStr = "";
 	int xImg = 340, yImg = 200;
-	
+
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {				
@@ -64,19 +66,18 @@ public class HideForm extends JFrame {
 		});
 	}
 		
-	public HideForm() {
-	//	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	//	int xRes = (int)screenSize.getWidth();
-	//	int yRes = (int)screenSize.getHeight();				
+	public HideForm() 
+	{			
 		setTitle("StegLSB");
-		setSize(790, 460);
+		setSize((int)(790*Menu.univScale), (int)(460*Menu.univScale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		String[] modes = { "Hecht", "LSB(text)", "Lossless" };
 		
 		JPanel panel = new JPanel(new GridBagLayout());
+		getContentPane().add(panel);
 		JLabel title = new JLabel("Hide file");
 		
 		JButton covBtn = new JButton("Select cover");
@@ -105,32 +106,32 @@ public class HideForm extends JFrame {
 		gbc.gridy = 0;	
 		gbc.anchor = GridBagConstraints.PAGE_START;
 		gbc.gridwidth = 3;
-		title.setFont(new Font("Consolas", Font.BOLD, 22));
+		title.setFont(new Font("Consolas", Font.BOLD, (int)(22*Menu.univScale)));
 		panel.add(title, gbc);
 		
 		// select cover button	
 		gbc.gridwidth = 1;
 		gbc.gridx = 0;
 		gbc.gridy = 1;	
-		covBtn.setFont(new Font("Consolas", Font.BOLD, 14));			
+		covBtn.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));			
 		panel.add(covBtn,gbc);		
 		
 		// select message button
 		gbc.gridx = 2;
 		gbc.gridy = 1;
-		msgBtn.setFont(new Font("Consolas", Font.BOLD, 14));
+		msgBtn.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));
 		panel.add(msgBtn,gbc);
 		
 		// cover label(below cover button)		
 		gbc.gridx = 0;
 		gbc.gridy = 2;	
-		covTxt.setFont(new Font("Consolas", Font.BOLD, 15));
+		covTxt.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));
 		panel.add(covTxt, gbc);
 		
 		// message label(below message button)
 		gbc.gridx = 2;
 		gbc.gridy = 2;		
-		msgTxt.setFont(new Font("Consolas", Font.BOLD, 15));
+		msgTxt.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));
 		panel.add(msgTxt, gbc);			
 		
 		// image cover repres.	
@@ -139,49 +140,47 @@ public class HideForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
-		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
-		covImg.setBounds(0, 0, xImg, yImg);
-		covImg.setPreferredSize(new Dimension(xImg, yImg));
+		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale), 
+				Image.SCALE_SMOOTH)));
 		panel.add(covImg,gbc);
 		
-		// text input message (text area)	
+		// text input message (text area from LSB(text) mode)	
 		gbc.gridx = 2;				// when mode is changed to LSB(text) it becomes visible
 		gbc.gridy = 4;		    			    			    		
-		msgInput.setPreferredSize(new Dimension(xImg, yImg));
+		msgInput.setPreferredSize(new Dimension((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale)));
 		msgInput.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
 		msgInput.setLineWrap(true);
-		msgInput.setFont(new Font("Consolas", Font.BOLD, 14));
+		msgInput.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));
 		msgInput.setVisible(false);
 		panel.add(msgInput, gbc);
 		
 		// image message repres.	
 		gbc.gridx = 2;				// Hecht mode -> showing message image
-		gbc.gridy = 4;
-		msgImg.setBounds(0, 0, xImg, yImg);		
-		msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
-		msgImg.setPreferredSize(new Dimension(xImg, yImg));
+		gbc.gridy = 4;	
+		msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale), 
+				Image.SCALE_SMOOTH)));
 		panel.add(msgImg,gbc);
 		
 		// label hide mode
 		gbc.gridx = 0;
 		gbc.gridy = 5;
 		gbc.anchor = GridBagConstraints.PAGE_END;
-		modeTxt.setFont(new Font("Consolas", Font.BOLD, 17));	
+		modeTxt.setFont(new Font("Consolas", Font.BOLD, (int)(17*Menu.univScale)));	
 		panel.add(modeTxt,gbc);
 		
 		// password label
 		gbc.gridwidth = 3;
 		gbc.gridx = 0;
 		gbc.gridy = 5;		
-		pwdTxt.setFont(new Font("Consolas", Font.BOLD, 17));
+		pwdTxt.setFont(new Font("Consolas", Font.BOLD, (int)(17*Menu.univScale)));
 		panel.add(pwdTxt, gbc);
 		
 		// password input text field
 		gbc.gridx = 0;
 		gbc.gridy = 6;	
 		gbc.anchor = GridBagConstraints.PAGE_START;
-		pwdInput.setPreferredSize(new Dimension(180,25));
-		pwdInput.setFont(new Font("Consolas", Font.BOLD, 13));
+		pwdInput.setPreferredSize(new Dimension((int)(210*Menu.univScale),(int)(25*Menu.univScale)));
+		pwdInput.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));
 		panel.add(pwdInput, gbc);		
 		
 		// combobox hide mode	
@@ -189,14 +188,14 @@ public class HideForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 6;		
 		hideModeCombo.setSelectedIndex(0);
-		hideModeCombo.setFont(new Font("Consolas", Font.BOLD, 14));		
+		hideModeCombo.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));		
 		panel.add(hideModeCombo, gbc);
 			
 		// confirm button	
 		gbc.gridx = 2;
 		gbc.gridy = 6;		
 		gbc.weighty = 3;		
-		confirmBtn.setFont(new Font("Consolas", Font.BOLD, 15));	
+		confirmBtn.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));	
 		panel.add(confirmBtn, gbc);
 		
 		hideModeCombo.addActionListener (new ActionListener () {
@@ -241,17 +240,17 @@ public class HideForm extends JFrame {
 					try {
 						img = ImageIO.read(fc.getSelectedFile());						
 						sizeImg = img.getHeight() * img.getWidth() * 3;
-						covImg.setIcon(new ImageIcon(img.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
+						covImg.setIcon(new ImageIcon(img.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale),
+								Image.SCALE_SMOOTH)));
 					} 
 					catch (Exception e1) { }		
-					
-					
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
 								  "</font><br/>Size: "+Menu.toMillions(sizeImg)+" bytes</html>");	
 					
 					covFileName = fc.getSelectedFile().toString();
 					defDir = fc.getCurrentDirectory().toString();
 				}
+				System.gc();
 			}
 		});
 		
@@ -265,13 +264,15 @@ public class HideForm extends JFrame {
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
-					BufferedImage img;
+					BufferedImage img = null;
 					long sizeFile = 0;
 					int index = hideModeCombo.getSelectedIndex();
-					try {
-						img = ImageIO.read(fc.getSelectedFile());
-						sizeFile = img.getHeight() * img.getWidth() * 3;
-						msgImg.setIcon(new ImageIcon(img.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
+					
+					try {						
+    					img = ImageIO.read(fc.getSelectedFile());
+						sizeFile = img.getHeight() * img.getWidth() * 3;	
+						msgImg.setIcon(new ImageIcon(img.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale),
+								Image.SCALE_SMOOTH)));
 					} 
 					catch (Exception e1) 
 					{
@@ -286,7 +287,8 @@ public class HideForm extends JFrame {
 							return;	
 						}														
 						else if(index == 2)						
-							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));
+							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale), 
+									Image.SCALE_SMOOTH)));
 							
 					}				
 					if(index == 1 || index == 2)	
@@ -299,6 +301,7 @@ public class HideForm extends JFrame {
 					memoMsgStr = msgTxt.getText();					
 					defDir = fc.getCurrentDirectory().toString();
 				}
+				System.gc();
 			}
 		});
 		
@@ -319,24 +322,24 @@ public class HideForm extends JFrame {
 					Menu.infoBox("Character \\ is not permited. Please change your message.");
 					return;
 				}
+								
+				if(key.length() < 4)
+				{
+					Menu.infoBox("Passwords can't be shorter than 4 characters.");
+					return;
+				}
 				
-				if((index == 0 && (covFileName == null || msgFileName == null)) ||
-					(index == 1 && strMessage.length() == 0) )
+				if( ((index == 0 || index == 2) && (covFileName == null || msgFileName == null)) || 
+				     (index == 1 && strMessage.length() == 0) )
 				{
 					Menu.infoBox("You must select both cover and message file.");
 					return;
 				}
 				cov = Highgui.imread(covFileName);
-				
-				if(key.length() <= 3)
-				{
-					Menu.infoBox("Password can't be shorter than 4 characters.");
-					return;
-				}
-				
+					
 				if(index == 0)
 				{	
-					if(!Menu.checkFileExtension(covFileName, new String[]{".bmp,",".png",".jpg"}))
+					if(!Menu.checkFileExtension(msgFileName, new String[]{".bmp,",".png",".jpg"}))
 					{
 						msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));	
 						msgFileName = null;
@@ -377,9 +380,15 @@ public class HideForm extends JFrame {
 					}
 				   catch(IOException ex){}
 				}	
-				
 			}
 		});
-		getContentPane().add(panel);
+		
+		addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.gc();
+            }
+		});
+		
 	}
 }
