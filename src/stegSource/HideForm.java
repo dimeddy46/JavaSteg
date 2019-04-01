@@ -9,7 +9,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -17,7 +16,6 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -26,42 +24,21 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.BevelBorder;
-
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 
-import javafx.stage.Screen;
-import resources.ResourceLoader;
-
 @SuppressWarnings("serial")
 public class HideForm extends JFrame {
-
 	String covFileName, msgFileName, defDir, memoMsgStr = "";
 	int xImg = 340, yImg = 200;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {				
-				try {
-					 System.loadLibrary(Core.NATIVE_LIBRARY_NAME);	
-				     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-				     new HideForm().setVisible(true);
-			    } 
-				catch (UnsatisfiedLinkError e) {
-					System.out.println("DLL");
-					return;
-				}
-			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
-			    		InstantiationException | IllegalAccessException e)  {  } 
-				
+				new HideForm().setVisible(true);				
 			}
 		});
 	}
@@ -72,10 +49,7 @@ public class HideForm extends JFrame {
 		setSize((int)(790*Menu.univScale), (int)(460*Menu.univScale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
-		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		String[] modes = { "Hecht", "LSB(text)", "Lossless" };
-		
+	
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
 		JLabel title = new JLabel("Hide file");
@@ -91,11 +65,11 @@ public class HideForm extends JFrame {
 		JLabel modeTxt = new JLabel("Mode:");
 		JLabel pwdTxt = new JLabel("Password:");
 		
-		JComboBox<String> hideModeCombo = new JComboBox<>(modes);		
+		JComboBox<String> hideModeCombo = new JComboBox<>(new String[]{"Hecht", "LSB(text)", "Lossless"});		
 		JTextField pwdInput = new JTextField(); 
 		JButton confirmBtn = new JButton("Confirm");	
 		
-		//---------------- LSB mode ------------
+		//---------------- LSB text mode ------------
 		JTextArea msgInput = new JTextArea();	
 		
 		GridBagConstraints gbc = new GridBagConstraints();

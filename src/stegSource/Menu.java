@@ -6,12 +6,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-
 import org.opencv.core.Core;
-
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.awt.event.ActionEvent;
 import java.awt.Image;
 import java.awt.Dimension;
@@ -19,14 +16,14 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-
 import resources.ResourceLoader;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Toolkit;
 
+@SuppressWarnings("serial")
 public class Menu extends JFrame {
-	static final long serialVersionUID = 1;
+
 	public static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
 					    fileImage = ResourceLoader.loadImage("file.png");
 	static double univScale = 1.0;
@@ -65,8 +62,7 @@ public class Menu extends JFrame {
 		{
 			rez = ","+str.substring(len-ct, len-ct+3) + rez;
 			ct += 3;
-		}
-		
+		}		
 		rez = str.substring(0, len % 3) + rez;		
 		if(rez.charAt(0) == ',')
 			return rez.substring(1,rez.length());
@@ -87,13 +83,13 @@ public class Menu extends JFrame {
 	
 	public static boolean checkFileExtension(String file, String[] exts)
 	{
-		file = getFileExtension(file);
-		
+		file = getFileExtension(file);		
 		for(String s : exts)
 			if(file.equals(s))
 				return true;
 		return false;
 	}
+	
 	public Menu() 
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -104,36 +100,40 @@ public class Menu extends JFrame {
 		setMinimumSize(new Dimension(400,300));
 		setLocationRelativeTo(null);
 		
+		JLabel title = new JLabel("Menu");
 		JPanel panel = new JPanel(new GridBagLayout());
-		getContentPane().add(panel);		
+		getContentPane().add(panel);			
+				
+		JButton hideBtn = new JButton("Hide file");
+		JButton extBtn = new JButton(" Extract ");
 		
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(5,5,5,5);
-		JLabel title = new JLabel("Menu");
+				
 		title.setFont(new Font("Consolas", Font.BOLD, 20));
 		gbc.gridx = 1;
 		gbc.gridy = 0;		
 		panel.add(title, gbc);
 		gbc.weighty = 1;
-		
-		JButton hideBtn = new JButton("Hide file");
+				
 		hideBtn.setFont(new Font("Consolas", Font.BOLD, 17));
 		gbc.gridx = 0;
-		gbc.gridy = 2;
+		gbc.gridy = 2;		
+		panel.add(hideBtn,gbc);
+				
+		extBtn.setFont(new Font("Consolas", Font.BOLD, 17));
+		gbc.gridx = 2;
+		gbc.gridy = 2;	
+		panel.add(extBtn,gbc);
+		
 		hideBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				 new HideForm().setVisible(true);	
-				 
+				 new HideForm().setVisible(true);		 
 			}
 		});
-		panel.add(hideBtn,gbc);
 		
-		JButton extBtn = new JButton(" Extract ");
-		extBtn.setFont(new Font("Consolas", Font.BOLD, 17));
-		gbc.gridx = 2;
-		gbc.gridy = 2;		
 		extBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
@@ -141,6 +141,6 @@ public class Menu extends JFrame {
 				new ExtractForm().setVisible(true);
 			}
 		});
-		panel.add(extBtn,gbc);
+		
 	}
 }

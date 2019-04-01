@@ -3,12 +3,10 @@ package stegSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Random;
-import java.util.Scanner;
 import java.io.File;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.highgui.Highgui;
 
 public class OpenCV {
 	
@@ -726,7 +724,7 @@ public class OpenCV {
    
    public static void main(String[] args) throws Exception
    {
-	   Mat msg = Highgui.imread("Samples/bridge.png"), cov = Highgui.imread("Samples/house.bmp"), 
+	  /* Mat msg = Highgui.imread("Samples/bridge.png"), cov = Highgui.imread("Samples/house.bmp"), 
 			   ster = Highgui.imread("Samples/bridge.png"), m;
 	   String key1 = "hestin", msg1 = "12345";
 	   StringBuilder val = new StringBuilder("hest"); 
