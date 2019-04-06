@@ -3,10 +3,12 @@ package stegSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Random;
+import java.util.Scanner;
 import java.io.File;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
 
 public class OpenCV {
 	
@@ -74,7 +76,7 @@ public class OpenCV {
 	   }
 	   return fileContents;
    } 
-
+    
 // -----------------------------------------------------------------------------------	   
 // ----------------------------- ENCRYPTION ALGORITHM --------------------------------
 // -----------------------------------------------------------------------------------
@@ -154,7 +156,7 @@ public class OpenCV {
 //----------------------------------------------------------------------------------- 
 // ---------------------------------- TEXT STEG -------------------------------------
 //-----------------------------------------------------------------------------------
-  
+   
    public static byte passCheckText(Mat img, String key)
   {
 	   char lit;
@@ -221,15 +223,13 @@ public class OpenCV {
 	  
 	   criptDecriptInfo(encrypt, keyBuild, len);
 	   
-	   for(byte ind : encrypt)
-	   {
+	   for(byte ind : encrypt)	   
 		   repBin += toBin(ind, 8); 
-		   System.out.print(toBin(ind, 8)+" ");
-	   }
+	   
 	   len *= 8;
 	   if(bt == 3) 
-		   repBin += "10";
-	   	   
+		   repBin += "10";			// number of LSB to hide on == 3? add 2 characters so the last operation gets 3 
+	   	   							// bits hidden instead of 1 or 2
 	   byte stPos = (byte)(8 - bt);
 	   for (short i = 0; i < cov.rows() && btCont < len; i++) 
 	   {
@@ -241,7 +241,6 @@ public class OpenCV {
 					valCanal.delete(0, 8).append(toBin(pixel[k], 8));
 					valCanal.replace(stPos, 8, repBin.substring(btCont, btCont += bt));
 					pixel[k] = (byte)(toDec(valCanal.toString()));
-
 				}
 				cov.put(i, j, pixel);
 			}
@@ -253,7 +252,6 @@ public class OpenCV {
    {
 	   byte bt = passCheckText(img,key);
 	   if(bt == 0) return "\\pwdincorect";
-	   System.out.println(bt);
 	   
 	   char countLit = 0;
 	   byte k, stPos = (byte)(8 - bt), contain;
@@ -400,7 +398,6 @@ public class OpenCV {
 	   byte[] msgVal = new byte[8], covVal = new byte[3];
 	   StringBuilder keyBuild = new StringBuilder(key);
 	   String init = "\\hec";
-	   System.out.println((msg.rows() * msg.cols() * 3)+" "+cov.rows() * cov.cols());
 
 	   if(msg.rows() * msg.cols() * 3 > cov.rows() * cov.cols()) // message requires 3 times cover size
 		   return Mat.zeros(1, 1, CvType.CV_8UC3);
@@ -436,8 +433,7 @@ public class OpenCV {
 		   	   {
 				   cov.get(y, x, covVal);
 				   writeHechtMat(covVal, msgVal, k);
-				   cov.put(y, x++, covVal);
-				   
+				   cov.put(y, x++, covVal);				   
 				   if(x == cov.cols()){ y++; x = 0; }	  
 			   }
 		   }   
@@ -493,7 +489,6 @@ public class OpenCV {
    
    public static String getLosslessExtension(Mat cov, StringBuilder keyBuild, int len)
    {
-	    System.out.println("AVEM:"+len);
 	    byte[] values = new byte[len];
 	    short[] pixel = new short[3];
 	    byte k, i = 0, j = 3;  //  start from pixel 3(4B + 4B + 1B written behind)
@@ -555,7 +550,6 @@ public class OpenCV {
 		   values[i] = (byte)total;				// getting last 8 bits of file length value
 		   total >>= 8;							// and right shifting to proceed with next 8 bits.
 	   }
-	   System.out.println(init.length()+" "+init);
 	   while(i != init.length()+4)				// i = 4, copying to [values] the fileLength and initialiser 
 		   values[i] = (byte)init.charAt(i++-4);
 		 
@@ -570,7 +564,6 @@ public class OpenCV {
 			   pixel[k] = (short)((pixel[k] & 0xFF00) | (values[i++] & 0xFF));
 		   cov.put(0, j++, pixel);
 	   }
-	   System.out.println("AFTER WRITE:"+j+" LEN:"+extension.length());
 	   total = 0; i = 0;							// continuing to write the [file] contents on image
 	   while(total < file.length)				
 	   {
@@ -603,7 +596,6 @@ public class OpenCV {
 	   i = 0; 
 	   j = 4 + total[1] / 3;
 	   if(total[1] % 3 == 0) j--;
-	   System.out.println(total[0]+" "+getExt()+" START:"+j);
 
 	   total[0] = 0;
 	   while(total[0] < fileContents.length)
@@ -654,7 +646,6 @@ public class OpenCV {
 		   return Mat.zeros(1, 1, CvType.CV_8UC3);
 	   
 	   total = fileContents.length;		   
-	   System.out.println(total+ " "+ (cov.cols()*cov.rows()*3 - 12));
 	   
 	   if(total > cov.cols()*cov.rows()*3 - 12)
 		   return Mat.zeros(1, 1, CvType.CV_8UC3);
@@ -702,12 +693,11 @@ public class OpenCV {
 	   byte k;
 	   short[] pixel = new short[3]; 
 	   
-	   total = passCheckLossless(cov, keyBuild);	// extracted file size on 2 short vars.
-	   System.out.println(total);
+	   total = passCheckLossless(cov, keyBuild);	// extract the file size
 	   if(total == 0)			//incorrect password
 		   return null;
 			
-	   byte[] fileContents = new byte[total]; // resToInt => compose short to make int variable
+	   byte[] fileContents = new byte[total]; 
 	   
 	   i = 0; j = 3; total = 0;
 	   while(total < fileContents.length)
@@ -724,16 +714,31 @@ public class OpenCV {
    
    public static void main(String[] args) throws Exception
    {
-	  /* Mat msg = Highgui.imread("Samples/bridge.png"), cov = Highgui.imread("Samples/house.bmp"), 
+	   Mat msg = Highgui.imread("Samples/house.bmp"), cov = Highgui.imread("Samples/house.bmp"), 
 			   ster = Highgui.imread("Samples/bridge.png"), m;
 	   String key1 = "hestin", msg1 = "12345";
 	   StringBuilder val = new StringBuilder("hest"); 
 	   byte bt = 1, y;
-	   int i,j;
+	   int i,j,k;
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
-	   
-					   
+	   byte[] bit = {1,2,4,8,16,32,64,-128};
+	  Mat zr = Mat.zeros(msg.rows(),msg.cols(),CvType.CV_8UC3);
+	  
+	 for(byte b = 0;b<bit.length;b++)
+	 {
+	   for(i = 0;i<msg.rows();i++)
+		   for(j = 0;j<msg.cols();j++)
+		   {
+			    msg.get(i, j, values );
+	   			values[2] = (byte) (-1 * (values[2] & bit[b])); 
+	   			values[1] = 0; 
+	   			values[0] = 0;
+	   			zr.put(i, j, values);
+		   }
+	   Highgui.imwrite("test"+b+".png", zr);
+	 }
+
 	   /*String file = "Samples/western.png";
 	   Mat rezf = hideLosslessFile2(cov, OpenCV.readFile(file), 
 				 key1, Menu.getFileExtension(file));

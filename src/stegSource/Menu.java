@@ -24,9 +24,10 @@ import java.awt.Toolkit;
 @SuppressWarnings("serial")
 public class Menu extends JFrame {
 
-	public static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
+	static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
 					    fileImage = ResourceLoader.loadImage("file.png");
-	static double univScale = 1.0;
+	static double univScale = 0;
+	static int xImg = 350, yImg = 210;
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -36,7 +37,7 @@ public class Menu extends JFrame {
 				     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			    } 
 				catch (UnsatisfiedLinkError e) {
-					infoBox("opencv_java2413.dll not found.");
+					infoBox("opencv_java2413 library has not been found.");
 					return;
 				}
 			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
@@ -49,7 +50,7 @@ public class Menu extends JFrame {
 	
 	public static void infoBox(String infoMessage)
     {
-        JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);      
     }
 	
 	public static String toMillions(long n)	// converts an number to a string with commas after every 3 digits
@@ -94,10 +95,13 @@ public class Menu extends JFrame {
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		univScale = screenSize.getWidth() > 1440? screenSize.getWidth() / 1440 : 1.0;
+		xImg = (int)(xImg*univScale);
+		yImg = (int)(yImg*univScale);
 		setTitle("StegLSB");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(400,300);
-		setMinimumSize(new Dimension(400,300));
+		setResizable(false);
+		setSize((int)(400*univScale),(int)(300*univScale));
+		
 		setLocationRelativeTo(null);
 		
 		JLabel title = new JLabel("Menu");
@@ -110,18 +114,18 @@ public class Menu extends JFrame {
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(5,5,5,5);
 				
-		title.setFont(new Font("Consolas", Font.BOLD, 20));
+		title.setFont(new Font("Consolas", Font.BOLD, (int)(20*univScale)));
 		gbc.gridx = 1;
 		gbc.gridy = 0;		
 		panel.add(title, gbc);
 		gbc.weighty = 1;
 				
-		hideBtn.setFont(new Font("Consolas", Font.BOLD, 17));
+		hideBtn.setFont(new Font("Consolas", Font.BOLD, (int)(17*univScale)));
 		gbc.gridx = 0;
 		gbc.gridy = 2;		
 		panel.add(hideBtn,gbc);
 				
-		extBtn.setFont(new Font("Consolas", Font.BOLD, 17));
+		extBtn.setFont(new Font("Consolas", Font.BOLD, (int)(17*univScale)));
 		gbc.gridx = 2;
 		gbc.gridy = 2;	
 		panel.add(extBtn,gbc);
@@ -130,7 +134,9 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				 new HideForm().setVisible(true);		 
+				HideForm x = new HideForm();			
+				x.setVisible(true);	
+				x = null;
 			}
 		});
 		
@@ -138,7 +144,9 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				new ExtractForm().setVisible(true);
+				ExtractForm x = new ExtractForm();
+				x.setVisible(true);
+				x = null;
 			}
 		});
 		

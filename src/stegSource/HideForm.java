@@ -9,8 +9,12 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -21,19 +25,21 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.TransferHandler;
+
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 
 @SuppressWarnings("serial")
 public class HideForm extends JFrame {
 	String covFileName, msgFileName, defDir, memoMsgStr = "";
-	int xImg = 340, yImg = 200;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -52,7 +58,7 @@ public class HideForm extends JFrame {
 	
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
-		JLabel title = new JLabel("Hide file");
+		JLabel title = new JLabel("Hide data");
 		
 		JButton covBtn = new JButton("Select cover");
 		JButton msgBtn = new JButton("Select message");
@@ -105,7 +111,7 @@ public class HideForm extends JFrame {
 		// message label(below message button)
 		gbc.gridx = 2;
 		gbc.gridy = 2;		
-		msgTxt.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));
+		msgTxt.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));		
 		panel.add(msgTxt, gbc);			
 		
 		// image cover repres.	
@@ -114,25 +120,23 @@ public class HideForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
-		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale), 
-				Image.SCALE_SMOOTH)));
+		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
 		panel.add(covImg,gbc);
 		
 		// text input message (text area from LSB(text) mode)	
 		gbc.gridx = 2;				// when mode is changed to LSB(text) it becomes visible
 		gbc.gridy = 4;		    			    			    		
-		msgInput.setPreferredSize(new Dimension((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale)));
+		msgInput.setPreferredSize(new Dimension(Menu.xImg, Menu.yImg));
 		msgInput.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
 		msgInput.setLineWrap(true);
 		msgInput.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));
-		msgInput.setVisible(false);
+		msgInput.setVisible(false);		
 		panel.add(msgInput, gbc);
 		
 		// image message repres.	
 		gbc.gridx = 2;				// Hecht mode -> showing message image
 		gbc.gridy = 4;	
-		msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale), 
-				Image.SCALE_SMOOTH)));
+		msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
 		panel.add(msgImg,gbc);
 		
 		// label hide mode
@@ -196,31 +200,32 @@ public class HideForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{	
+				title.setText("Hide data");
 				JFileChooser fc = new JFileChooser();						
 				if(defDir != null)
 					fc.setCurrentDirectory(new File(defDir));
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
-					BufferedImage img = null;
+					BufferedImage img;
 					int sizeImg = 0;					
 					
 					if(!Menu.checkFileExtension(fc.getSelectedFile().toString(), new String[]{".png",".bmp"}))
 					{
-						Menu.infoBox("Invalid file. Please select an image as your cover.");
+						Menu.infoBox("Invalid file. Please select a .PNG or .BMP as your cover.");
 						return;
 					}
 					
 					try {
 						img = ImageIO.read(fc.getSelectedFile());						
 						sizeImg = img.getHeight() * img.getWidth() * 3;
-						covImg.setIcon(new ImageIcon(img.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale),
-								Image.SCALE_SMOOTH)));
+						covImg.setIcon(null);
+						covImg.setIcon(new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+						img = null;						
 					} 
 					catch (Exception e1) { }		
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								  "</font><br/>Size: "+Menu.toMillions(sizeImg)+" bytes</html>");	
-					
+								  "</font><br/>Size: "+Menu.toMillions(sizeImg)+" bytes</html>");						
 					covFileName = fc.getSelectedFile().toString();
 					defDir = fc.getCurrentDirectory().toString();
 				}
@@ -232,27 +237,29 @@ public class HideForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e)
 			{
+				title.setText("Hide data");
 				JFileChooser fc = new JFileChooser();					
 				if(defDir != null)
 					fc.setCurrentDirectory(new File(defDir));
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
-					BufferedImage img = null;
+					BufferedImage img;
 					long sizeFile = 0;
 					int index = hideModeCombo.getSelectedIndex();
 					
 					try {						
     					img = ImageIO.read(fc.getSelectedFile());
-						sizeFile = img.getHeight() * img.getWidth() * 3;	
-						msgImg.setIcon(new ImageIcon(img.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale),
-								Image.SCALE_SMOOTH)));
+						sizeFile = img.getHeight() * img.getWidth() * 3;
+						msgImg.setIcon(null);
+						msgImg.setIcon(new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+						img = null;
 					} 
 					catch (Exception e1) 
 					{
 						if(index == 0)
 						{
-							Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
+							Menu.infoBox("Invalid file. Please select a image as your message for Hecht steganography.");
 							return;
 						}
 						else if(index == 1 && !Menu.checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"}))
@@ -261,9 +268,7 @@ public class HideForm extends JFrame {
 							return;	
 						}														
 						else if(index == 2)						
-							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale), 
-									Image.SCALE_SMOOTH)));
-							
+							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));							
 					}				
 					if(index == 1 || index == 2)	
 						sizeFile = fc.getSelectedFile().length();
@@ -283,7 +288,7 @@ public class HideForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				Mat cov, msg, rez = null;
+				Mat cov, rez = null;
 				String key = pwdInput.getText(), strMessage = msgInput.getText();
 				int index = hideModeCombo.getSelectedIndex();
 				
@@ -315,13 +320,13 @@ public class HideForm extends JFrame {
 				{	
 					if(!Menu.checkFileExtension(msgFileName, new String[]{".bmp,",".png",".jpg"}))
 					{
-						msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(xImg, yImg, Image.SCALE_SMOOTH)));	
-						msgFileName = null;
+						msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+						msgTxt.setText("");
+						msgFileName = null;						
 						Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
 						return;
 					}
-					msg = Highgui.imread(msgFileName);
-					rez = OpenCV.hideImgHecht(cov, msg, key);
+					rez = OpenCV.hideImgHecht(cov, Highgui.imread(msgFileName), key);
 				}
 				else if(index == 1)						
 					rez = OpenCV.hideImgText(cov, strMessage, key);			
@@ -339,30 +344,23 @@ public class HideForm extends JFrame {
 				fc.setCurrentDirectory(new File(defDir));
 				
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
-				{
+				{	
+					// using [key] as the selected file name
 					key = fc.getSelectedFile().toString();  // if no extension or an invalid one is provided, assign .png	
 					if(!Menu.checkFileExtension(key, new String[]{".png",".bmp"}))
 						key += ".png";	
 					
 					Highgui.imwrite(key, rez);	
-					title.setText("Image hidden succesfully!");
+					Menu.infoBox("Image hidden succesfully!");
 					
-					Desktop dt = Desktop.getDesktop();	// compare original cover with embedded cover
-				    try{ 
-				       dt.open(new File(covFileName));
-					   dt.open(new File(key));					  
+					try{
+						Desktop dt = Desktop.getDesktop();	// compare original cover with embedded cover 					
+						dt.open(new File(covFileName));
+						dt.open(new File(key));
 					}
-				   catch(IOException ex){}
-				}	
+					catch(IOException ex){  }
+				}
 			}
 		});
-		
-		addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                System.gc();
-            }
-		});
-		
 	}
 }

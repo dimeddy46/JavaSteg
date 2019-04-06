@@ -1,5 +1,6 @@
 package stegSource;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -23,12 +24,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 @SuppressWarnings("serial")
 public class ExtractForm extends JFrame {
 	
-	int xImg = 350, yImg = 210;	
-	String defDir, covFileName;
+	String covFileName, defDir;
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -38,13 +39,11 @@ public class ExtractForm extends JFrame {
 		});
 	}
 	public ExtractForm() 
-	{	
-		
+	{			
 		setTitle("StegLSB");
 		setSize((int)(650*Menu.univScale), (int)(455*Menu.univScale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
-	//	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
@@ -84,14 +83,15 @@ public class ExtractForm extends JFrame {
 		covTxt.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));
 		panel.add(covTxt, gbc);
 		
+		// cover image repres.	
 		gbc.weighty = 20;	
 		gbc.gridx = 0;
 		gbc.gridy = 3;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
-		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale), 
-				Image.SCALE_SMOOTH)));
+		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
 		panel.add(covImg,gbc);		
 
+		// password label
 		gbc.weighty = 50;	
 		gbc.gridx = 0;
 		gbc.gridy = 4;
@@ -99,6 +99,7 @@ public class ExtractForm extends JFrame {
 		pwdTxt.setFont(new Font("Consolas", Font.BOLD, (int)(17*Menu.univScale)));
 		panel.add(pwdTxt, gbc);
 		
+		// password text field
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.WEST;
@@ -106,6 +107,7 @@ public class ExtractForm extends JFrame {
 		pwdInput.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));
 		panel.add(pwdInput, gbc);
 		
+		// confirm button
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.EAST;		
@@ -116,7 +118,6 @@ public class ExtractForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{	
-				title.setText("Extract hidden data");
 				JFileChooser fc = new JFileChooser();						
 				if(defDir != null)
 					fc.setCurrentDirectory(new File(defDir));
@@ -127,8 +128,7 @@ public class ExtractForm extends JFrame {
 
 					try {
 						img = ImageIO.read(fc.getSelectedFile());				
-						covImg.setIcon(new ImageIcon(img.getScaledInstance((int)(xImg*Menu.univScale), (int)(yImg*Menu.univScale), 
-								Image.SCALE_SMOOTH)));
+						covImg.setIcon(new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
 					} 
 					catch (Exception e1) { 
 						Menu.infoBox("Invalid file. Please select an image as your cover.");
@@ -153,7 +153,7 @@ public class ExtractForm extends JFrame {
 			{	
 				boolean found = false;
 				JFileChooser fc = new JFileChooser();
-				String key = pwdInput.getText(), msgStr = null, fileName;			
+				String key = pwdInput.getText(), msgStr = null, fileName = null;			
 				byte[] msgByte;
 				
 				if(covFileName == null)
@@ -212,17 +212,11 @@ public class ExtractForm extends JFrame {
 				}
 				
 				if(found == true)
-					title.setText("<html><font color='green'>The file has been extracted!</font></html>");
+					Menu.infoBox("The file has been extracted succesfully!");				
 				else 
 					Menu.infoBox("The password is invalid or no data is hidden inside the file.");
 			}
 		});
-		
-		addWindowListener(new WindowAdapter() {
-	            @Override
-	            public void windowClosing(WindowEvent e) {
-	                System.gc();
-	            }
-	    });
+	
 	}	
 }
