@@ -137,7 +137,7 @@ public class ExtractForm extends JFrame {
 					
 					covFileName = fc.getSelectedFile().toString();
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								  "</font><br/>Size: "+Menu.toMillions(fc.getSelectedFile().length())+" bytes</html>");	
+								  "</font><br/>Size: "+Menu.addCommas(fc.getSelectedFile().length())+" bytes</html>");	
 					
 					defDir = fc.getCurrentDirectory().toString();
 				}
@@ -190,7 +190,8 @@ public class ExtractForm extends JFrame {
 					{
 						 fileName = fc.getSelectedFile().toString();
 						 if(!Menu.checkFileExtension(fileName, new String[]{".txt"}))
-							 fileName += ".txt";						 
+							 fileName += ".txt";	
+						 
 						 OpenCV.writeFile(fileName, msgStr.getBytes());
 						 found = true;
 					}

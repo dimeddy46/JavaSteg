@@ -37,7 +37,7 @@ public class Menu extends JFrame {
 				     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			    } 
 				catch (UnsatisfiedLinkError e) {
-					infoBox("opencv_java2413 library has not been found.");
+					infoBox(Core.NATIVE_LIBRARY_NAME+" library has not been found or is invalid.");
 					return;
 				}
 			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
@@ -53,7 +53,7 @@ public class Menu extends JFrame {
         JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);      
     }
 	
-	public static String toMillions(long n)	// converts an number to a string with commas after every 3 digits
+	public static String addCommas(long n)	// converts an number to a string with commas after every 3 digits
 	{
 		StringBuilder str = new StringBuilder(Long.toString(n));
 		String rez = "";
@@ -73,11 +73,10 @@ public class Menu extends JFrame {
 	public static String getFileExtension(String file)
 	{
 		if(file == null)
-			return "";
-		
+			return "";		
 		int x = file.lastIndexOf(".");		
 		if(x == -1)
-			return ".txt";
+			return "";
 		
 		return file.substring(x, file.length());
 	}

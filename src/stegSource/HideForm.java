@@ -225,7 +225,7 @@ public class HideForm extends JFrame {
 					} 
 					catch (Exception e1) { }		
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								  "</font><br/>Size: "+Menu.toMillions(sizeImg)+" bytes</html>");						
+								  "</font><br/>Size: "+Menu.addCommas(sizeImg)+" bytes</html>");						
 					covFileName = fc.getSelectedFile().toString();
 					defDir = fc.getCurrentDirectory().toString();
 				}
@@ -259,7 +259,7 @@ public class HideForm extends JFrame {
 					{
 						if(index == 0)
 						{
-							Menu.infoBox("Invalid file. Please select a image as your message for Hecht steganography.");
+							Menu.infoBox("Invalid file. Please select a image as your message for\nHecht steganography or choose Lossless hiding mode.");
 							return;
 						}
 						else if(index == 1 && !Menu.checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"}))
@@ -274,7 +274,7 @@ public class HideForm extends JFrame {
 						sizeFile = fc.getSelectedFile().length();
 
 					msgTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								   "</font><br/>Size: "+Menu.toMillions(sizeFile)+" bytes</html>");	
+								   "</font><br/>Size: "+Menu.addCommas(sizeFile)+" bytes</html>");	
 					
 					msgFileName = fc.getSelectedFile().toString();	
 					memoMsgStr = msgTxt.getText();					
