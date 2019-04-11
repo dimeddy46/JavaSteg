@@ -12,7 +12,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.highgui.Highgui;
 
-import com.sun.javafx.geom.Rectangle;
 
 public class OpenCV {
 	
@@ -202,9 +201,8 @@ public class OpenCV {
 	   return 0;
   }
   
-   public static Mat hideImgText(Mat covCopy, String msg, String key)
+   public static Mat hideImgText(Mat cov, String msg, String key)
    {
-	   Mat cov = covCopy.clone();
 	   String repBin = "";
 	   StringBuilder valCanal = new StringBuilder("10101010"),
 	                 keyBuild = new StringBuilder(key);
@@ -393,9 +391,8 @@ public class OpenCV {
 	   return rez;
    }
       
-   public static Mat hideImgHecht(Mat covCopy, Mat msg, String key)
+   public static Mat hideImgHecht(Mat cov, Mat msg, String key)
    {
-	   Mat cov = covCopy.clone();
 	   short i,j,x,y;
 	   byte k,p;
 	   short[] rez = new short[2]; 
@@ -529,10 +526,11 @@ public class OpenCV {
 	   return new int[]{byteToInt(values), values[8]};		// return a array of [file len, extension len]
    }
   
-   public static Mat hideLosslessFile2(Mat covCopy, byte[] file, String key, String extension)
-   {											    // hide a [file] inside an image by converting 
-	   Mat cov = covCopy.clone();				   	// the image to 16 bits(byte->word) and writing each byte from [file]
-	   String init = "lsf\\" + (char)extension.length() + extension; // on the 8 Least Significant Bits of cover's words 
+   public static Mat hideLosslessFile2(Mat cov, byte[] file, String key, String extension)
+   {   // hide a [file] inside an image by converting the image to 16 bits(byte->word)
+	   // and writing each byte from [file]  on 
+	   // the 8 Least Significant Bits of cover's words
+	   String init = "lsf\\" + (char)extension.length() + extension; 
 	   StringBuilder keyBuild = new StringBuilder(key);
 	   int i, j, total;
 	   byte k;

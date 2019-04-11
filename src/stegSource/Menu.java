@@ -25,7 +25,7 @@ import java.awt.Toolkit;
 public class Menu extends JFrame {
 
 	static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
-					    fileImage = ResourceLoader.loadImage("file.png");
+				 fileImage = ResourceLoader.loadImage("file.png");
 	static double univScale = 0;
 	static int xImg = 350, yImg = 210;
 	
@@ -78,7 +78,7 @@ public class Menu extends JFrame {
 		if(x == -1)
 			return "";
 		
-		return file.substring(x, file.length());
+		return file.toLowerCase().substring(x, file.length());
 	}
 	
 	public static boolean checkFileExtension(String file, String[] exts)

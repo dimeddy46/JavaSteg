@@ -18,6 +18,7 @@ import java.awt.Image;
 import javax.swing.JLabel;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -35,6 +36,7 @@ public class ExtractForm extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				new ExtractForm().setVisible(true);
+				
 			}
 		});
 	}
@@ -44,6 +46,7 @@ public class ExtractForm extends JFrame {
 		setSize((int)(650*Menu.univScale), (int)(455*Menu.univScale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
@@ -125,10 +128,14 @@ public class ExtractForm extends JFrame {
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
 					BufferedImage img = null;				
-
+					ImageIcon icon;
 					try {
-						img = ImageIO.read(fc.getSelectedFile());				
-						covImg.setIcon(new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+						img = ImageIO.read(fc.getSelectedFile());	
+						icon = new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+						covImg.setIcon(icon);
+						icon.getImage().flush(); // gc
+						icon = null;
+						img = null;						
 					} 
 					catch (Exception e1) { 
 						Menu.infoBox("Invalid file. Please select an image as your cover.");
@@ -142,11 +149,9 @@ public class ExtractForm extends JFrame {
 					defDir = fc.getCurrentDirectory().toString();
 				}
 				System.gc();
-			}
-			
+			}			
 		});
 		
-
 		confirmBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
@@ -218,6 +223,13 @@ public class ExtractForm extends JFrame {
 					Menu.infoBox("The password is invalid or no data is hidden inside the file.");
 			}
 		});
-	
+		addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+            	Window z = javax.swing.FocusManager.getCurrentManager().getActiveWindow();
+            	System.out.println(z.toString());
+            }
+
+        });
 	}	
+	
 }

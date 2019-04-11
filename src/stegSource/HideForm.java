@@ -41,7 +41,7 @@ import org.opencv.highgui.Highgui;
 public class HideForm extends JFrame {
 	String covFileName, msgFileName, defDir, memoMsgStr = "";
 
-	public static void main(String[] args) {
+	public void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {				
 				new HideForm().setVisible(true);				
@@ -55,7 +55,8 @@ public class HideForm extends JFrame {
 		setSize((int)(790*Menu.univScale), (int)(460*Menu.univScale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
-	
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
 		JLabel title = new JLabel("Hide data");
@@ -208,21 +209,23 @@ public class HideForm extends JFrame {
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
 					BufferedImage img;
+					ImageIcon icon;
 					int sizeImg = 0;					
 					
 					if(!Menu.checkFileExtension(fc.getSelectedFile().toString(), new String[]{".png",".bmp"}))
 					{
 						Menu.infoBox("Invalid file. Please select a .PNG or .BMP as your cover.");
 						return;
-					}
-					
+					}					
 					try {
 						img = ImageIO.read(fc.getSelectedFile());						
 						sizeImg = img.getHeight() * img.getWidth() * 3;
-						covImg.setIcon(null);
-						covImg.setIcon(new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
-						img = null;						
-					} 
+						icon = new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+						covImg.setIcon(icon);
+						icon.getImage().flush(); // gc
+						icon = null;
+						img = null;							
+					}
 					catch (Exception e1) { }		
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
 								  "</font><br/>Size: "+Menu.addCommas(sizeImg)+" bytes</html>");						
@@ -245,17 +248,20 @@ public class HideForm extends JFrame {
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
 					BufferedImage img;
+					ImageIcon icon;
 					long sizeFile = 0;
 					int index = hideModeCombo.getSelectedIndex();
 					
 					try {						
     					img = ImageIO.read(fc.getSelectedFile());
 						sizeFile = img.getHeight() * img.getWidth() * 3;
-						msgImg.setIcon(null);
-						msgImg.setIcon(new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+						icon = new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+						msgImg.setIcon(icon);
+						icon.getImage().flush(); // gc
+						icon = null;
 						img = null;
 					} 
-					catch (Exception e1) 
+					catch (Exception ex) 
 					{
 						if(index == 0)
 						{
@@ -318,11 +324,11 @@ public class HideForm extends JFrame {
 					
 				if(index == 0)
 				{	
-					if(!Menu.checkFileExtension(msgFileName, new String[]{".bmp,",".png",".jpg"}))
+					if(!Menu.checkFileExtension(msgFileName, new String[]{".bmp",".png",".jpg"}))
 					{
+						msgFileName = null;
 						msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
-						msgTxt.setText("");
-						msgFileName = null;						
+						msgTxt.setText("");												
 						Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
 						return;
 					}
