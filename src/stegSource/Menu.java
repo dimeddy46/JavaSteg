@@ -128,7 +128,7 @@ public class Menu extends JFrame {
 		gbc.gridx = 2;
 		gbc.gridy = 2;	
 		panel.add(extBtn,gbc);
-		
+
 		hideBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
