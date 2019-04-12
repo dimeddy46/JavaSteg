@@ -55,8 +55,7 @@ public class HideForm extends JFrame {
 		setSize((int)(790*Menu.univScale), (int)(460*Menu.univScale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
 		JLabel title = new JLabel("Hide data");
@@ -115,17 +114,18 @@ public class HideForm extends JFrame {
 		msgTxt.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));		
 		panel.add(msgTxt, gbc);			
 		
-		// image cover repres.	
+		// image cover repres.			
 		gbc.weighty = 1;
 		gbc.weightx = 1;		
 		gbc.gridx = 0;
 		gbc.gridy = 4;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
-		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+		ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+		covImg.setIcon(icon);
 		panel.add(covImg,gbc);
 		
 		// text input message (text area from LSB(text) mode)	
-		gbc.gridx = 2;				// when mode is changed to LSB(text) it becomes visible
+		gbc.gridx = 2;				// LSB(text) mode -> showing textArea
 		gbc.gridy = 4;		    			    			    		
 		msgInput.setPreferredSize(new Dimension(Menu.xImg, Menu.yImg));
 		msgInput.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
@@ -137,7 +137,9 @@ public class HideForm extends JFrame {
 		// image message repres.	
 		gbc.gridx = 2;				// Hecht mode -> showing message image
 		gbc.gridy = 4;	
-		msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+		msgImg.setIcon(icon);		// from covImg
+		icon.getImage().flush();	// gc
+		icon = null;	// gc
 		panel.add(msgImg,gbc);
 		
 		// label hide mode
@@ -273,8 +275,13 @@ public class HideForm extends JFrame {
 							Menu.infoBox("Invalid file. A text file is required for LSB hiding mode.");
 							return;	
 						}														
-						else if(index == 2)						
-							msgImg.setIcon(new ImageIcon(Menu.fileImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));							
+						else if(index == 2)
+						{	
+							icon = new ImageIcon(Menu.fileImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+							msgImg.setIcon(icon);	
+							icon.getImage().flush(); // gc
+							icon = null;
+						}
 					}				
 					if(index == 1 || index == 2)	
 						sizeFile = fc.getSelectedFile().length();
@@ -325,9 +332,13 @@ public class HideForm extends JFrame {
 				if(index == 0)
 				{	
 					if(!Menu.checkFileExtension(msgFileName, new String[]{".bmp",".png",".jpg"}))
-					{
+					{	
+						
 						msgFileName = null;
-						msgImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+						ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+						msgImg.setIcon(icon);
+						icon.getImage().flush();	// gc
+						icon = null;	// gc
 						msgTxt.setText("");												
 						Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
 						return;

@@ -87,11 +87,15 @@ public class ExtractForm extends JFrame {
 		panel.add(covTxt, gbc);
 		
 		// cover image repres.	
+		
 		gbc.weighty = 20;	
 		gbc.gridx = 0;
 		gbc.gridy = 3;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
-		covImg.setIcon(new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH)));
+		ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+		covImg.setIcon(icon);
+		icon.getImage().flush();	// gc
+		icon = null;	// gc
 		panel.add(covImg,gbc);		
 
 		// password label
