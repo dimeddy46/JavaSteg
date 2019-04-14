@@ -32,14 +32,6 @@ public class ExtractForm extends JFrame {
 	
 	String covFileName, defDir;
 	
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				new ExtractForm().setVisible(true);
-				
-			}
-		});
-	}
 	public ExtractForm() 
 	{			
 		setTitle("StegLSB");

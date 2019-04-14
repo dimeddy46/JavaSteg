@@ -41,14 +41,6 @@ import org.opencv.highgui.Highgui;
 public class HideForm extends JFrame {
 	String covFileName, msgFileName, defDir, memoMsgStr = "";
 
-	public void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {				
-				new HideForm().setVisible(true);				
-			}
-		});
-	}
-		
 	public HideForm() 
 	{			
 		setTitle("StegLSB");
