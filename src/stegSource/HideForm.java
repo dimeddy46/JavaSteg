@@ -39,7 +39,7 @@ import org.opencv.highgui.Highgui;
 
 @SuppressWarnings("serial")
 public class HideForm extends JFrame {
-	String covFileName, msgFileName, defDir, memoMsgStr = "";
+	String covFileName, msgFileName, memoMsgStr = "";
 
 	public HideForm() 
 	{			
@@ -197,8 +197,8 @@ public class HideForm extends JFrame {
 			{	
 				title.setText("Hide data");
 				JFileChooser fc = new JFileChooser();						
-				if(defDir != null)
-					fc.setCurrentDirectory(new File(defDir));
+				if(Menu.defDir != null)
+					fc.setCurrentDirectory(new File(Menu.defDir));
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
@@ -224,7 +224,7 @@ public class HideForm extends JFrame {
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
 								  "</font><br/>Size: "+Menu.addCommas(sizeImg)+" bytes</html>");						
 					covFileName = fc.getSelectedFile().toString();
-					defDir = fc.getCurrentDirectory().toString();
+					Menu.defDir = fc.getCurrentDirectory().toString();
 				}
 				System.gc();
 			}
@@ -236,8 +236,8 @@ public class HideForm extends JFrame {
 			{
 				title.setText("Hide data");
 				JFileChooser fc = new JFileChooser();					
-				if(defDir != null)
-					fc.setCurrentDirectory(new File(defDir));
+				if(Menu.defDir != null)
+					fc.setCurrentDirectory(new File(Menu.defDir));
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{
@@ -283,7 +283,7 @@ public class HideForm extends JFrame {
 					
 					msgFileName = fc.getSelectedFile().toString();	
 					memoMsgStr = msgTxt.getText();					
-					defDir = fc.getCurrentDirectory().toString();
+					Menu.defDir = fc.getCurrentDirectory().toString();
 				}
 				System.gc();
 			}
@@ -350,7 +350,7 @@ public class HideForm extends JFrame {
 				}
 				
 				JFileChooser fc = new JFileChooser();
-				fc.setCurrentDirectory(new File(defDir));
+				fc.setCurrentDirectory(new File(Menu.defDir));
 				
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	

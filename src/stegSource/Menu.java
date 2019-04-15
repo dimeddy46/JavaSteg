@@ -28,7 +28,8 @@ public class Menu extends JFrame {
 				 fileImage = ResourceLoader.loadImage("file.png");
 	static double univScale = 0;
 	static int xImg = 350, yImg = 210;
-	
+	static String defDir;
+
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {				

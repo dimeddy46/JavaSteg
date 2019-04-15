@@ -30,7 +30,7 @@ import java.io.IOException;
 @SuppressWarnings("serial")
 public class ExtractForm extends JFrame {
 	
-	String covFileName, defDir;
+	String covFileName;
 	
 	public ExtractForm() 
 	{			
@@ -118,8 +118,8 @@ public class ExtractForm extends JFrame {
 			public void actionPerformed(ActionEvent e) 
 			{	
 				JFileChooser fc = new JFileChooser();						
-				if(defDir != null)
-					fc.setCurrentDirectory(new File(defDir));
+				if(Menu.defDir != null)
+					fc.setCurrentDirectory(new File(Menu.defDir));
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
@@ -142,7 +142,7 @@ public class ExtractForm extends JFrame {
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
 								  "</font><br/>Size: "+Menu.addCommas(fc.getSelectedFile().length())+" bytes</html>");	
 					
-					defDir = fc.getCurrentDirectory().toString();
+					Menu.defDir = fc.getCurrentDirectory().toString();
 				}
 				System.gc();
 			}			
