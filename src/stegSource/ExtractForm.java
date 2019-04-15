@@ -200,7 +200,7 @@ public class ExtractForm extends JFrame {
 				}
 			
 				cov = Highgui.imread(covFileName, -1); 	// read 16 bit images(can't use convertTo, hidden data would be lost)
-				if(cov.depth() != 0 && (msgByte = OpenCV.extLosslessFile2(cov, key)) != null )
+				if(cov.depth() != 0 && (msgByte = OpenCV.extLosslessFile(cov, key)) != null )
 				{
 					String fileType = OpenCV.getExt();
 					Menu.infoBox("A hidden "+fileType.toUpperCase()+" file has been found. Please select a save location.");

@@ -504,7 +504,7 @@ public class OpenCV {
 	    return new String(values);
    }
 
-   public static int[] passCheckLossless2(Mat cov, StringBuilder keyBuild)	// combined lossless image and file check
+   public static int[] passCheckLossless(Mat cov, StringBuilder keyBuild)	// combined lossless image and file check
    {
 	   String init = "lsf\\";	
 	   byte i, j, k;
@@ -523,12 +523,13 @@ public class OpenCV {
 		   if((values[i] != init.charAt(i-4)))		
 			   return new int[]{0};					// incorrect password
 	   
-	   return new int[]{byteToInt(values), values[8]};		// return a array of [file len, extension len]
+	   return new int[]{byteToInt(values), values[8]};		// return a array of {fileLength, extLength}
    }
   
-   public static Mat hideLosslessFile2(Mat cov, byte[] file, String key, String extension)
-   {   // hide a [file] inside an image by converting the image to 16 bits(byte->word)
-	   // and writing each byte from [file]  on 
+   public static Mat hideLosslessFile(Mat cov, byte[] file, String key, String extension)
+   {  
+	   // hide a [file] inside [cov] by converting the [cov] to 16 bits(byte->word)
+	   // and writing each byte from [file] on 
 	   // the 8 Least Significant Bits of cover's words
 	   String init = "lsf\\" + (char)extension.length() + extension; 
 	   StringBuilder keyBuild = new StringBuilder(key);
@@ -536,7 +537,7 @@ public class OpenCV {
 	   byte k;
 	   short[] pixel = new short[3]; 
 	   byte[] values = new byte[init.length()+7];		// will contain: fileLength + init + extLength + extension 
-	   													// 			   = 4B +         4B +   1B +        xB => 
+	   													// 			   = 4B +         4B +   1B +        xB
 	   if(file == null) 
 		   return Mat.zeros(1, 1, CvType.CV_8UC3);	   
 	   		   	   
@@ -547,26 +548,26 @@ public class OpenCV {
 		   cov.convertTo(cov, CvType.CV_16UC3, 255);	   	// convert cover image to 16 bits depth if it isn't already
 	   
 	   total = file.length;
-	   for(i = 0;i < 4;i++)						// convert file length to byte[]
+	   for(i = 0;i < 4;i++)					// convert file length to byte[]
 	   {
-		   values[i] = (byte)total;				// getting last 8 bits of file length value
-		   total >>= 8;							// and right shifting to proceed with next 8 bits.
+		   values[i] = (byte)total;			// getting last 8 bits of file length value
+		   total >>= 8;						// and right shifting to proceed with next 8 bits.
 	   }
-	   while(i != init.length()+4)				// i = 4, copying to [values] the fileLength and initialiser 
+	   while(i != init.length()+4)			// i = 4, copying to [values] the fileLength and initialiser 
 		   values[i] = (byte)init.charAt(i++-4);
 		 
 	   criptDecriptInfo(values, keyBuild, init.length()+4);		// encrypt length, initialiser and file
 	   criptDecriptInfo(file, keyBuild, file.length);  
 
 	   i = 0; j = 0;
-	   while(i < init.length()+4)					// write fileLength, initialiser, extLength, extension
+	   while(i < init.length()+4)		// write fileLength, initialiser, extLength, extension
 	   {
 		   cov.get(0, j, pixel);
 		   for(k = 0;k < 3;k++)
 			   pixel[k] = (short)((pixel[k] & 0xFF00) | (values[i++] & 0xFF));
 		   cov.put(0, j++, pixel);
 	   }
-	   total = 0; i = 0;							// continuing to write the [file] contents on image
+	   total = 0; i = 0;				// continuing to embed the [file] contents in [cov]
 	   while(total < file.length)				
 	   {
 		   cov.get(i, j, pixel);
@@ -579,7 +580,7 @@ public class OpenCV {
 	   return cov;
    }
      
-   public static byte[] extLosslessFile2(Mat covCopy, String key)
+   public static byte[] extLosslessFile(Mat covCopy, String key)
    {	   
 	   Mat cov = covCopy.clone();
 	   StringBuilder keyBuild = new StringBuilder(key);
@@ -587,13 +588,13 @@ public class OpenCV {
 	   int i,j;	   
 	   byte k;
 	   
-	   int[] total = passCheckLossless2(cov, keyBuild);	// extracted: file size [0] and extension length [1]
+	   int[] total = passCheckLossless(cov, keyBuild);	// extracts: fileLength [0] and extensionLength [1]
 	   
-	   if(total[0] == 0)			//incorrect password
+	   if(total[0] == 0)		//incorrect password
 		   return null;	
 
-	   byte[] fileContents = new byte[total[0]]; 
-	   setExt( getLosslessExtension(cov, keyBuild, total[1]));	  
+	   byte[] fileContents = new byte[total[0]]; 	// array which will contain the extracted info
+	   setExt( getLosslessExtension(cov, keyBuild, total[1]));	  //  set the extension publicly to retrieve it from ExtractForm 
 
 	   i = 0; 
 	   j = 4 + total[1] / 3;

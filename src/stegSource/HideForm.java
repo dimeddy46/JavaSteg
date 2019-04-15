@@ -340,7 +340,7 @@ public class HideForm extends JFrame {
 				else if(index == 1)						
 					rez = OpenCV.hideImgText(cov, strMessage, key);			
 				else if(index == 2)
-					rez = OpenCV.hideLosslessFile2(cov, OpenCV.readFile(msgFileName), key, Menu.getFileExtension(msgFileName));
+					rez = OpenCV.hideLosslessFile(cov, OpenCV.readFile(msgFileName), key, Menu.getFileExtension(msgFileName));
 				
 				if(rez.rows() == 1)
 				{
