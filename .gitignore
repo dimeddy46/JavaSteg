@@ -2,3 +2,5 @@ Samples/
 bin/
 dll/
 .settings/
+.classpath
+.project
