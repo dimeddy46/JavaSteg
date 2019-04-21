@@ -51,6 +51,7 @@ public class ExtractForm extends JFrame {
 		JTextField pwdInput = new JTextField(); 
 		JButton confirmBtn = new JButton("Confirm");	
 		
+		Font font = new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale));
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(3,3,3,3);
 		
@@ -60,13 +61,13 @@ public class ExtractForm extends JFrame {
 		gbc.gridy = 0;	
 		gbc.gridwidth = 1;
 		gbc.anchor = GridBagConstraints.PAGE_START;
-		title.setFont(new Font("Consolas", Font.BOLD, (int)(22*Menu.univScale)));
+		title.setFont(font.deriveFont(Font.BOLD, 22*Menu.univScale));
 		panel.add(title, gbc);		
 		
 		// cover button	
 		gbc.gridx = 0;
 		gbc.gridy = 1;	
-		covBtn.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));			
+		covBtn.setFont(font);			
 		panel.add(covBtn,gbc);
 		
 		// cover label(below cover button)	
@@ -74,7 +75,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 2;	
 		gbc.anchor = GridBagConstraints.PAGE_START;
-		covTxt.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));
+		covTxt.setFont(font.deriveFont(Font.BOLD, 15*Menu.univScale));
 		panel.add(covTxt, gbc);
 		
 		// cover image repres.	
@@ -85,8 +86,8 @@ public class ExtractForm extends JFrame {
 		gbc.anchor = GridBagConstraints.PAGE_START;		
 		ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
 		covImg.setIcon(icon);
-		icon.getImage().flush();	// gc
-		icon = null;	// gc
+		icon.getImage().flush();	// garbage collector
+		icon = null;	
 		panel.add(covImg,gbc);		
 
 		// password label
@@ -94,7 +95,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;
 		gbc.anchor = GridBagConstraints.NORTHWEST;
-		pwdTxt.setFont(new Font("Consolas", Font.BOLD, (int)(17*Menu.univScale)));
+		pwdTxt.setFont(font.deriveFont(Font.BOLD, 17*Menu.univScale));
 		panel.add(pwdTxt, gbc);
 		
 		// password text field
@@ -102,14 +103,14 @@ public class ExtractForm extends JFrame {
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.WEST;
 		pwdInput.setPreferredSize(new Dimension((int)(210*Menu.univScale),(int)(25*Menu.univScale)));
-		pwdInput.setFont(new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale)));
+		pwdInput.setFont(font);
 		panel.add(pwdInput, gbc);
 		
 		// confirm button
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.EAST;		
-		confirmBtn.setFont(new Font("Consolas", Font.BOLD, (int)(15*Menu.univScale)));	
+		confirmBtn.setFont(font.deriveFont(Font.BOLD, 15*Menu.univScale));	
 		panel.add(confirmBtn, gbc);
 		
 		covBtn.addActionListener(new ActionListener() 
@@ -123,19 +124,21 @@ public class ExtractForm extends JFrame {
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
 					BufferedImage img = null;				
-					ImageIcon icon;
+					ImageIcon icon = null;
 					try {
 						img = ImageIO.read(fc.getSelectedFile());	
 						icon = new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
-						covImg.setIcon(icon);
-						icon.getImage().flush(); // gc
-						icon = null;
-						img = null;						
+						covImg.setIcon(icon);				
 					} 
 					catch (Exception e1) { 
 						Menu.infoBox("Invalid file. Please select an image as your cover.");
 						return;
 					}	
+					finally { 					// garbage collector
+						icon.getImage().flush(); 
+						icon = null;
+						img = null;
+					}
 					
 					covFileName = fc.getSelectedFile().toString();
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
@@ -218,12 +221,11 @@ public class ExtractForm extends JFrame {
 					Menu.infoBox("The password is invalid or no data is hidden inside the file.");
 			}
 		});
+		
 		addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-            	Window z = javax.swing.FocusManager.getCurrentManager().getActiveWindow();
-            	System.out.println(z.toString());
+            	Menu.owner.toFront();
             }
-
         });
 	}	
 	

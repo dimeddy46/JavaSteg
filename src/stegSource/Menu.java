@@ -9,6 +9,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 import org.opencv.core.Core;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.event.ActionEvent;
 import java.awt.Image;
 import java.awt.Dimension;
@@ -20,6 +23,7 @@ import resources.ResourceLoader;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.awt.Window;
 
 @SuppressWarnings("serial")
 public class Menu extends JFrame {
@@ -27,9 +31,10 @@ public class Menu extends JFrame {
 	static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
 				 fileImage = ResourceLoader.loadImage("file.png");
 	static int xImg = 350, yImg = 210;
-	static double univScale = 0;	
+	static float univScale = 0;	
 	static String defDir;
-
+	static Window owner = null;
+	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {				
@@ -44,7 +49,7 @@ public class Menu extends JFrame {
 			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
 			    		InstantiationException | IllegalAccessException e)  {  } 
 				
-				new Menu().setVisible(true);						
+				new Menu().setVisible(true);				
 			}
 		});
 	}
@@ -90,18 +95,17 @@ public class Menu extends JFrame {
 				return true;
 		return false;
 	}
-	
+
 	Menu() 
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		univScale = screenSize.getWidth() > 1440? screenSize.getWidth() / 1440 : 1.0;
+		univScale = (float) (screenSize.getWidth() > 1440? screenSize.getWidth() / 1440 : 1.0);
 		xImg = (int)(xImg*univScale);
 		yImg = (int)(yImg*univScale);
 		setTitle("StegLSB");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);
 		setSize((int)(400*univScale),(int)(300*univScale));
-		
 		setLocationRelativeTo(null);
 		
 		JLabel title = new JLabel("Menu");
@@ -133,7 +137,7 @@ public class Menu extends JFrame {
 		hideBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
-			{
+			{		
 				HideForm x = new HideForm();			
 				x.setVisible(true);	
 				x = null;
@@ -148,6 +152,12 @@ public class Menu extends JFrame {
 				x.setVisible(true);
 				x = null;
 			}
-		});		
+		});
+		addWindowListener(new WindowAdapter() {
+            public void windowOpened(WindowEvent e) {
+            	owner = javax.swing.FocusManager.getCurrentManager().getActiveWindow();		//used to regain focus to Menu
+            }
+        });
 	}
+
 }
