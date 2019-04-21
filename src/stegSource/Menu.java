@@ -26,8 +26,8 @@ public class Menu extends JFrame {
 
 	static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
 				 fileImage = ResourceLoader.loadImage("file.png");
-	static double univScale = 0;
 	static int xImg = 350, yImg = 210;
+	static double univScale = 0;	
 	static String defDir;
 
 	public static void main(String[] args) {
@@ -49,12 +49,12 @@ public class Menu extends JFrame {
 		});
 	}
 	
-	public static void infoBox(String infoMessage)
+	static void infoBox(String infoMessage)
     {
         JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);      
     }
 	
-	public static String addCommas(long n)	// converts an number to a string with commas after every 3 digits
+	static String addCommas(long n)	// converts an number to a string with commas after every 3 digits
 	{
 		StringBuilder str = new StringBuilder(Long.toString(n));
 		String rez = "";
@@ -71,7 +71,7 @@ public class Menu extends JFrame {
 		return rez;
 	}
 	
-	public static String getFileExtension(String file)
+	static String getFileExtension(String file)
 	{
 		if(file == null)
 			return "";		
@@ -82,7 +82,7 @@ public class Menu extends JFrame {
 		return file.toLowerCase().substring(x, file.length());
 	}
 	
-	public static boolean checkFileExtension(String file, String[] exts)
+	static boolean checkFileExtension(String file, String[] exts)
 	{
 		file = getFileExtension(file);		
 		for(String s : exts)
@@ -91,7 +91,7 @@ public class Menu extends JFrame {
 		return false;
 	}
 	
-	public Menu() 
+	Menu() 
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		univScale = screenSize.getWidth() > 1440? screenSize.getWidth() / 1440 : 1.0;
@@ -148,7 +148,6 @@ public class Menu extends JFrame {
 				x.setVisible(true);
 				x = null;
 			}
-		});
-		
+		});		
 	}
 }

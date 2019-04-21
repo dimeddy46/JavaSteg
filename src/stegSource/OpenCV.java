@@ -14,21 +14,17 @@ import org.opencv.highgui.Highgui;
 
 
 public class OpenCV {
-	
-	static{
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-	}
 
 	private static final byte[] maskHechtExtract = { 28, 96, -128};	// B(3 bit) G(2 bits) R(1 bit)
 	private static final byte[] maskHechtHide =  { -8, -4, -2}; // B G R
 	private static Random rand = new Random();
 	private static String fileExtension;
 	
-	public static void setExt(String fext){
+	static void setExt(String fext){
 		fileExtension = fext;
 	}
 	
-	public static String getExt(){
+	static String getExt(){
 		return fileExtension;
 	}
 
@@ -36,7 +32,7 @@ public class OpenCV {
 // ------------------------------------- UTILS ---------------------------------------
 // -----------------------------------------------------------------------------------
 
-   public static String toBin(int dec, int bits)
+   static String toBin(int dec, int bits)
    {
 	   if(dec < 0)
 		   dec &= 0xFF;
@@ -51,12 +47,12 @@ public class OpenCV {
        return s;
    }
    
-   public static int toDec(String bin)
+   static int toDec(String bin)
    {
 	   return Integer.parseInt(bin,2);
    }
    
-   public static void writeFile(String fileName, byte[] contents)
+   static void writeFile(String fileName, byte[] contents)
    {		
 	   File file = new File(fileName);
 	   try{
@@ -65,7 +61,7 @@ public class OpenCV {
 	   catch(IOException ex){ System.out.println("write file error"); return;}
    }
    
-   public static byte[] readFile(String fileName)
+   static byte[] readFile(String fileName)
    {		 
 	   File file = new File(fileName);
 	   byte[] fileContents = null;
@@ -84,7 +80,7 @@ public class OpenCV {
 // ----------------------------- ENCRYPTION ALGORITHM --------------------------------
 // -----------------------------------------------------------------------------------
 	   
-   public static StringBuilder chain(StringBuilder key, int len)
+   private static StringBuilder chain(StringBuilder key, int len)
    {
 	   for(int i = 1;i < len;i++)
 	   {
@@ -97,7 +93,7 @@ public class OpenCV {
 	   return key;
    }
    
-   public static void criptDecriptMat(Mat src, StringBuilder key)
+   static void criptDecriptMat(Mat src, StringBuilder key)
    {
  	  byte v1, k = (byte)(key.length() -1);
  	  byte[] pixel = new byte[3];
@@ -131,7 +127,7 @@ public class OpenCV {
  	//  return src;
    }
    
-   public static void criptDecriptInfo(byte[] info, StringBuilder key, int len)
+   static void criptDecriptInfo(byte[] info, StringBuilder key, int len)
    {
 	   byte k = (byte)(key.length() - 1);
 	   int val;
@@ -160,8 +156,8 @@ public class OpenCV {
 // ---------------------------------- TEXT STEG -------------------------------------
 //-----------------------------------------------------------------------------------
    
-   public static byte passCheckText(Mat img, String key)
-  {
+   private static byte passCheckText(Mat img, String key)
+    {
 	   char lit;
 	   String msg = "", init = "\\st";
 	   byte bt,k, j = 0, lenInit = (byte)init.length();
@@ -201,7 +197,7 @@ public class OpenCV {
 	   return 0;
   }
   
-   public static Mat hideImgText(Mat cov, String msg, String key)
+   static Mat hideImgText(Mat cov, String msg, String key)
    {
 	   String repBin = "";
 	   StringBuilder valCanal = new StringBuilder("10101010"),
@@ -250,7 +246,7 @@ public class OpenCV {
 	return cov;
    }
    
-   public static String extImgText(Mat img, String key)
+   static String extImgText(Mat img, String key)
    {
 	   byte bt = passCheckText(img,key);
 	   if(bt == 0) return "\\pwdincorect";
@@ -296,7 +292,7 @@ public class OpenCV {
 // --------------------------------------------------------------------------------
 // --------------------------- HECHT STEGANOGRAPHY --------------------------------
 // --------------------------------------------------------------------------------
-   public static byte[] resToByte(short[] rez)
+   private static byte[] resToByte(short[] rez)
    {
 	   byte[] values = new byte[8];	 
 	   
@@ -308,7 +304,7 @@ public class OpenCV {
 	   return values;
    }
    
-   public static short[] byteToRes(byte[] values)
+   private static short[] byteToRes(byte[] values)
    {		   
 	   short[] rez = new short[3];
 	   for(byte j = 0; j < 4;j+=2)				
@@ -320,7 +316,7 @@ public class OpenCV {
 	   return rez;
    }  
    
-   public static void writeHechtMat(byte[] out, byte[] inp, byte index) 
+   private static void writeHechtMat(byte[] out, byte[] inp, byte index) 
    {	  
 	      // converts 1 byte from [inp] to 3 bytes [out] changing only the least significant 
 	   	  // bits of the [out] contents with the most significant bits from [inp]
@@ -330,7 +326,7 @@ public class OpenCV {
 		  out[0] = (byte)((out[0] & maskHechtHide[0]) | ((inp[index] & 0xFF & maskHechtExtract[0]) >> 2));
    }
    
-   public static byte extractHechtMat(byte[] inp)
+   private static byte extractHechtMat(byte[] inp)
    {
 	   byte out = 0;
 	   out |= (byte)((inp[2] & 0xFF & 1) << 7);		// reverse the writing operation to compose 1 byte 
@@ -340,7 +336,7 @@ public class OpenCV {
 	   return (byte)(out & 0xFF);					// so we fill with rand instead of leaving 00 as those bits.
    }
    
-   public static byte writeHechtInfo(byte[] out, byte inp, byte index) 
+   private static byte writeHechtInfo(byte[] out, byte inp, byte index) 
    {	  
 	    // prepares resolution and image identifier: only the least significant bit from [out] elements is changed.
 	   	// writing [inp] byte from right to left on [out]
@@ -352,7 +348,7 @@ public class OpenCV {
 	   	return index;
    }
    
-   public static void extractHechtInfo(byte[] inp, byte[] retn)
+   private static void extractHechtInfo(byte[] inp, byte[] retn)
    {	
 	    // gets least significant bit from [inp] elements and builds a byte
 	   	// retn[0] -> index 
@@ -363,7 +359,7 @@ public class OpenCV {
 	   		retn[1] |= ((inp[k] & 1) << retn[0]++);  
    }
    
-   public static short[] passCheckHecht(Mat cov, StringBuilder keyBuild)
+   private static short[] passCheckHecht(Mat cov, StringBuilder keyBuild)
    {
 	   String init = "\\hec";
 	   short[] rez = new short[2];
@@ -391,7 +387,7 @@ public class OpenCV {
 	   return rez;
    }
       
-   public static Mat hideImgHecht(Mat cov, Mat msg, String key)
+   static Mat hideImgHecht(Mat cov, Mat msg, String key)
    {
 	   short i,j,x,y;
 	   byte k,p;
@@ -441,7 +437,7 @@ public class OpenCV {
 	   return cov;
    }
    
-   public static Mat extImgHecht(Mat covCopy, String key)
+   static Mat extImgHecht(Mat covCopy, String key)
    {
 	   Mat cov = covCopy.clone();
 	   short i,j,x,y;
@@ -479,7 +475,7 @@ public class OpenCV {
 // --------------------------------------------------------------------------------   
 	
         
-   public static int byteToInt(byte[] values)
+   private static int byteToInt(byte[] values)
    {
 	   int rez = 0;
 	   for(int i = 3;i >= 1;i--)
@@ -488,7 +484,7 @@ public class OpenCV {
 	   return rez;
    }
    
-   public static String getLosslessExtension(Mat cov, StringBuilder keyBuild, int len)
+   private static String getLosslessExtension(Mat cov, StringBuilder keyBuild, int len)
    {
 	    byte[] values = new byte[len];
 	    short[] pixel = new short[3];
@@ -504,7 +500,7 @@ public class OpenCV {
 	    return new String(values);
    }
 
-   public static int[] passCheckLossless(Mat cov, StringBuilder keyBuild)	// combined lossless image and file check
+   private static int[] passCheckLossless(Mat cov, StringBuilder keyBuild)	// combined lossless image and file check
    {
 	   String init = "lsf\\";	
 	   byte i, j, k;
@@ -526,7 +522,7 @@ public class OpenCV {
 	   return new int[]{byteToInt(values), values[8]};		// return a array of {fileLength, extLength}
    }
   
-   public static Mat hideLosslessFile(Mat cov, byte[] file, String key, String extension)
+   static Mat hideLosslessFile(Mat cov, byte[] file, String key, String extension)
    {  
 	   // hide a [file] inside [cov] by converting the [cov] to 16 bits(byte->word)
 	   // and writing each byte from [file] on 
@@ -580,7 +576,7 @@ public class OpenCV {
 	   return cov;
    }
      
-   public static byte[] extLosslessFile(Mat covCopy, String key)
+   static byte[] extLosslessFile(Mat covCopy, String key)
    {	   
 	   Mat cov = covCopy.clone();
 	   StringBuilder keyBuild = new StringBuilder(key);
@@ -612,10 +608,12 @@ public class OpenCV {
 	   
 	   return fileContents;	   
    }
+   
+   //---------------------------------------------------------
 
-   public static void main(String[] args) throws Exception
-   {
-	   Mat msg = Highgui.imread("Samples/aaaLOSSLESS.png"), cov = Highgui.imread("Samples/house.bmp"), 
+  public static void main(String[] args) throws Exception
+   {	
+	  /*   Mat msg = Highgui.imread("Samples/western.png"), cov = Highgui.imread("Samples/house.bmp"), 
 			   ster = Highgui.imread("Samples/bridge.png"), m;
 	   String key1 = "hestin", msg1 = "12345";
 	   StringBuilder val = new StringBuilder("hest"); 
@@ -624,17 +622,15 @@ public class OpenCV {
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
 	   byte[] bit = {1,2,4,8,16,32,64,-128};
-	   Mat z,zz;
-	   Highgui.imwrite("test"+(k++)+".bmp",msg);
 	   
-	/*   msg.convertTo(msg, CvType.CV_8S);
+	   
+	/* Mat z,zz;
+	   msg.convertTo(msg, CvType.CV_8S);	
 	   z = msg.rowRange(0, 8).colRange(0, 8);
-	   zz = msg.rowRange(0, 8).colRange(8, 16);
-	   
+	   zz = msg.rowRange(0, 8).colRange(8, 16);	   
 	   System.out.println(z);
 	   Core.subtract(z, zz, z);
-	   System.out.println(z.dump());
-   	 //  
+	   System.out.println(z.dump()); */ 
 
 /*	  Mat zr = Mat.zeros(msg.rows(),msg.cols(),CvType.CV_8UC3);
 	  for(byte b = 0;b<bit.length;b++)

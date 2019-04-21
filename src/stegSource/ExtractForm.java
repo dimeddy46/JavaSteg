@@ -28,11 +28,10 @@ import java.io.File;
 import java.io.IOException;
 
 @SuppressWarnings("serial")
-public class ExtractForm extends JFrame {
-	
+public class ExtractForm extends JFrame {	
 	String covFileName;
 	
-	public ExtractForm() 
+	ExtractForm() 
 	{			
 		setTitle("StegLSB");
 		setSize((int)(650*Menu.univScale), (int)(455*Menu.univScale));
