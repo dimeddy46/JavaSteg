@@ -11,7 +11,6 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.event.ActionEvent;
 import java.awt.Image;
 import java.awt.Dimension;
@@ -28,13 +27,13 @@ import java.awt.Window;
 @SuppressWarnings("serial")
 public class Menu extends JFrame {
 
-	static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
+	final static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
 				 fileImage = ResourceLoader.loadImage("file.png");
-	static int xImg = 350, yImg = 210;
-	static float univScale = 0;	
 	static String defDir;
-	static Window owner = null;
-	
+	static Window owner;
+	int[] imgSize = {350, 210};
+	float univScale = 0;		
+		
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {				
@@ -49,14 +48,21 @@ public class Menu extends JFrame {
 			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
 			    		InstantiationException | IllegalAccessException e)  {  } 
 				
-				new Menu().setVisible(true);				
+				new Menu().setVisible(true);		
 			}
 		});
 	}
 	
+	int[] getXY(){
+		return imgSize;
+	}	
+	float getUnivScale(){
+		return univScale;
+	}
+	
 	static void infoBox(String infoMessage)
     {
-        JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);      
+        JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);           
     }
 	
 	static String addCommas(long n)	// converts an number to a string with commas after every 3 digits
@@ -100,8 +106,8 @@ public class Menu extends JFrame {
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		univScale = (float) (screenSize.getWidth() > 1440? screenSize.getWidth() / 1440 : 1.0);
-		xImg = (int)(xImg*univScale);
-		yImg = (int)(yImg*univScale);
+		imgSize[0] *= (int)univScale;
+		imgSize[1] *= (int)univScale;
 		setTitle("StegLSB");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);
@@ -154,8 +160,10 @@ public class Menu extends JFrame {
 			}
 		});
 		addWindowListener(new WindowAdapter() {
-            public void windowOpened(WindowEvent e) {
-            	owner = javax.swing.FocusManager.getCurrentManager().getActiveWindow();		//used to regain focus to Menu
+            public void windowOpened(WindowEvent e) 
+            {
+            	//used to regain focus to Menu
+            	owner = javax.swing.FocusManager.getCurrentManager().getActiveWindow();		
             }
         });
 	}

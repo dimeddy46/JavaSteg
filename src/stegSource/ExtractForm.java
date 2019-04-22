@@ -29,12 +29,17 @@ import java.io.IOException;
 
 @SuppressWarnings("serial")
 public class ExtractForm extends JFrame {	
-	String covFileName;
+	String covFileName;	
 	
 	ExtractForm() 
 	{			
+		Menu m = new Menu();
+		int[] imgSize = m.getXY();
+		float scale = m.getUnivScale();
+		m = null;
+		
 		setTitle("StegLSB");
-		setSize((int)(650*Menu.univScale), (int)(455*Menu.univScale));
+		setSize((int)(650*scale), (int)(455*scale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -51,7 +56,7 @@ public class ExtractForm extends JFrame {
 		JTextField pwdInput = new JTextField(); 
 		JButton confirmBtn = new JButton("Confirm");	
 		
-		Font font = new Font("Consolas", Font.BOLD, (int)(14*Menu.univScale));
+		Font font = new Font("Consolas", Font.BOLD, (int)(14*scale));
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(3,3,3,3);
 		
@@ -61,7 +66,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridy = 0;	
 		gbc.gridwidth = 1;
 		gbc.anchor = GridBagConstraints.PAGE_START;
-		title.setFont(font.deriveFont(Font.BOLD, 22*Menu.univScale));
+		title.setFont(font.deriveFont(Font.BOLD, 22*scale));
 		panel.add(title, gbc);		
 		
 		// cover button	
@@ -75,7 +80,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 2;	
 		gbc.anchor = GridBagConstraints.PAGE_START;
-		covTxt.setFont(font.deriveFont(Font.BOLD, 15*Menu.univScale));
+		covTxt.setFont(font.deriveFont(Font.BOLD, 15*scale));
 		panel.add(covTxt, gbc);
 		
 		// cover image repres.	
@@ -84,7 +89,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 3;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
-		ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+		ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 		covImg.setIcon(icon);
 		icon.getImage().flush();	// garbage collector
 		icon = null;	
@@ -95,14 +100,14 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;
 		gbc.anchor = GridBagConstraints.NORTHWEST;
-		pwdTxt.setFont(font.deriveFont(Font.BOLD, 17*Menu.univScale));
+		pwdTxt.setFont(font.deriveFont(Font.BOLD, 17*scale));
 		panel.add(pwdTxt, gbc);
 		
 		// password text field
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.WEST;
-		pwdInput.setPreferredSize(new Dimension((int)(210*Menu.univScale),(int)(25*Menu.univScale)));
+		pwdInput.setPreferredSize(new Dimension((int)(210*scale),(int)(25*scale)));
 		pwdInput.setFont(font);
 		panel.add(pwdInput, gbc);
 		
@@ -110,7 +115,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.EAST;		
-		confirmBtn.setFont(font.deriveFont(Font.BOLD, 15*Menu.univScale));	
+		confirmBtn.setFont(font.deriveFont(Font.BOLD, 15*scale));	
 		panel.add(confirmBtn, gbc);
 		
 		covBtn.addActionListener(new ActionListener() 
@@ -127,7 +132,7 @@ public class ExtractForm extends JFrame {
 					ImageIcon icon = null;
 					try {
 						img = ImageIO.read(fc.getSelectedFile());	
-						icon = new ImageIcon(img.getScaledInstance(Menu.xImg, Menu.yImg, Image.SCALE_SMOOTH));
+						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 						covImg.setIcon(icon);				
 					} 
 					catch (Exception e1) { 
@@ -172,7 +177,7 @@ public class ExtractForm extends JFrame {
 				}	
 				
 				Mat cov = Highgui.imread(covFileName), msgMat;
-				
+
 				if((msgMat = OpenCV.extImgHecht(cov, key)).cols() != 1)
 				{
 					Menu.infoBox("A hidden IMAGE has been found. Please select a save location.");
