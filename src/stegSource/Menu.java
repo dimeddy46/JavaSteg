@@ -42,7 +42,7 @@ public class Menu extends JFrame {
 				     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			    } 
 				catch (UnsatisfiedLinkError e) {
-					infoBox(Core.NATIVE_LIBRARY_NAME+" library has not been found or is invalid.");
+					infoBox(Core.NATIVE_LIBRARY_NAME+" library has not been found in this directory or is invalid.");
 					return;
 				}
 			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
@@ -64,23 +64,6 @@ public class Menu extends JFrame {
     {
         JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);           
     }
-	
-	static String addCommas(long n)	// converts an number to a string with commas after every 3 digits
-	{
-		StringBuilder str = new StringBuilder(Long.toString(n));
-		String rez = "";
-		int i, ct = 3, len = str.length();
-		
-		for(i = 0;i < len / 3; i++)
-		{
-			rez = ","+str.substring(len-ct, len-ct+3) + rez;
-			ct += 3;
-		}		
-		rez = str.substring(0, len % 3) + rez;		
-		if(rez.charAt(0) == ',')
-			return rez.substring(1,rez.length());
-		return rez;
-	}
 	
 	static String getFileExtension(String file)
 	{

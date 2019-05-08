@@ -2,15 +2,10 @@ package stegSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Random;
-import java.util.Scanner;
 import java.io.File;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
-import org.opencv.highgui.Highgui;
 
 
 public class OpenCV {
@@ -213,10 +208,10 @@ public class OpenCV {
 		   return Mat.zeros(1, 1, CvType.CV_8U);
 	   
 	   byte bt = 1;
-	   while((cov.rows() * cov.cols() * 3) / (8.0 / bt) < len * (8.0 / bt))	// choosing amount of LSB (bt) to write on
+	   while((cov.rows() * cov.cols() * 3) / (8.0 / bt) < len * (8.0 / bt))	// choosing amount of LSB [bt] to write on
 		   bt++;															// depending of image size
 
-	   if(bt >= 5)								// at more than 4 LSB changed, the cover gets blurry
+	   if(bt >= 5)								// at more than 4 LSB changed, the cover gets too much noise
 		   return Mat.zeros(1, 1, CvType.CV_8U);
 	  
 	   criptDecriptInfo(encrypt, keyBuild, len);
