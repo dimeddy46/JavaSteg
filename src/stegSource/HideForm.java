@@ -220,16 +220,19 @@ public class HideForm extends JFrame {
 					}
 					catch (Exception e1) { }
 					finally { 					// garbage collector
-						icon.getImage().flush(); 
-						icon = null;
+						if(icon != null)
+						{
+							icon.getImage().flush(); 
+							icon = null;
+						}
 						img = null;
+						Menu.defDir = fc.getCurrentDirectory().toString();
 					}
 					
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
 								  "</font><br/>Size: "+NumberFormat.getInstance().format(sizeImg)+" bytes</html>");	
 					
-					covFileName = fc.getSelectedFile().toString();
-					Menu.defDir = fc.getCurrentDirectory().toString();
+					covFileName = fc.getSelectedFile().toString();					
 				}
 				System.gc();
 			}
@@ -276,9 +279,13 @@ public class HideForm extends JFrame {
 						}						
 					}	
 					finally { 					// garbage collector
-						icon.getImage().flush(); 
-						icon = null;
+						if(icon != null)
+						{
+							icon.getImage().flush(); 
+							icon = null;
+						}
 						img = null;
+						Menu.defDir = fc.getCurrentDirectory().toString();
 					}
 					
 					if(index == 1 || index == 2)	
@@ -289,7 +296,7 @@ public class HideForm extends JFrame {
 					
 					msgFileName = fc.getSelectedFile().toString();	
 					memoMsgStr = msgTxt.getText();					
-					Menu.defDir = fc.getCurrentDirectory().toString();
+					
 				}
 				System.gc();
 			}
@@ -331,14 +338,14 @@ public class HideForm extends JFrame {
 				{	
 					if(!Menu.checkFileExtension(msgFileName, new String[]{".bmp",".png",".jpg"}))
 					{	
-						
+						Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");					
 						msgFileName = null;
+						msgTxt.setText("");	
+						
 						ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 						msgImg.setIcon(icon);
 						icon.getImage().flush();	// gc
-						icon = null;	// gc
-						msgTxt.setText("");												
-						Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");
+						icon = null;	
 						return;
 					}
 					rez = OpenCV.hideImgHecht(cov, Highgui.imread(msgFileName), key);
@@ -351,7 +358,7 @@ public class HideForm extends JFrame {
 				if(rez.rows() == 1)
 				{
 					Menu.infoBox("The message file is bigger than cover file or an empty message file has been selected.\n"
-							+ "For Hecht the required cover must be 3 times bigger than the message.");				
+							   + "For Hecht the required cover must be 3 times bigger than the message.");				
 					return;
 				}
 				
@@ -361,10 +368,13 @@ public class HideForm extends JFrame {
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
 					// using [key] as the selected file name
-					key = fc.getSelectedFile().toString();  // if no extension or an invalid one is provided, assign .png	
+					key = fc.getSelectedFile().toString();  // if no extension or an unsupported one is provided, assign .png	
+					if(index == 2 && Menu.checkFileExtension(key, new String[]{".bmp"})){
+						key = key.replace(".bmp", ".png");
+						System.out.println("DA");
+					}
 					if(!Menu.checkFileExtension(key, new String[]{".png",".bmp"}))
 						key += ".png";	
-					
 					Highgui.imwrite(key, rez);	
 					Menu.infoBox("Image hidden succesfully!");
 					

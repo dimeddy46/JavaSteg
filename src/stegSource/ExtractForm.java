@@ -137,16 +137,20 @@ public class ExtractForm extends JFrame {
 						return;
 					}	
 					finally { 					// garbage collector
-						icon.getImage().flush(); 
-						icon = null;
+						if(icon != null)
+						{
+							icon.getImage().flush(); 
+							icon = null;
+						}
 						img = null;
+						Menu.defDir = fc.getCurrentDirectory().toString();
 					}
 					
 					covFileName = fc.getSelectedFile().toString();
 					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
 								  "</font><br/>Size: "+NumberFormat.getInstance().format(fc.getSelectedFile().length())+" bytes</html>");	
 					
-					Menu.defDir = fc.getCurrentDirectory().toString();
+					
 				}
 				System.gc();
 			}			
