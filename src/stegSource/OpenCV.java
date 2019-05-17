@@ -2,10 +2,31 @@ package stegSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Random;
+import java.util.Scanner;
+
+import javax.imageio.ImageIO;
+
+import java.util.List;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfInt;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.core.Core;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
 
 
 public class OpenCV {
@@ -14,6 +35,10 @@ public class OpenCV {
 	private static final byte[] maskHechtHide =  { -8, -4, -2}; // B G R
 	private static Random rand = new Random();
 	private static String fileExtension;
+	
+	static{
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+	}
 	
 	static void setExt(String fext){
 		fileExtension = fext;
@@ -26,7 +51,7 @@ public class OpenCV {
 // -----------------------------------------------------------------------------------
 // ------------------------------------- UTILS ---------------------------------------
 // -----------------------------------------------------------------------------------
-
+ 
    static String toBin(int dec, int bits)
    {
 	   if(dec < 0)
@@ -119,7 +144,6 @@ public class OpenCV {
  			  src.put(i, j, pixel);
  		  }
  	  }
- 	//  return src;
    }
    
    static void criptDecriptInfo(byte[] info, StringBuilder key, int len)
@@ -604,28 +628,127 @@ public class OpenCV {
 	   return fileContents;	   
    }
    
+   
+   
    //---------------------------------------------------------
 
   public static void main(String[] args) throws Exception
    {	
-	  /*   Mat msg = Highgui.imread("Samples/western.png"), cov = Highgui.imread("Samples/house.bmp"), 
-			   ster = Highgui.imread("Samples/bridge.png"), m;
+	     Mat msg, cov = Highgui.imread("Samples/house.bmp"), 
+			   ster = Highgui.imread("Samples/bridge.png");
 	   String key1 = "hestin", msg1 = "12345";
 	   StringBuilder val = new StringBuilder("hest"); 
-	   byte bt = 1, y;
-	   int i = 0,j = 0,k = 0;
+	   byte bt = 1, y;	   
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
 	   byte[] bit = {1,2,4,8,16,32,64,-128};
+	   int ct = 0;
+	   Mat orig = Highgui.imread("Samples/western.png");   
+	   Watermark.hideDCT(orig, key1);
+	   Highgui.imwrite("Samples/western1.png", orig);
+	   msg = Highgui.imread("Samples/western1.png");		   
+	  System.out.println( Watermark.extDCT(msg));
+	/*   System.out.println("STOPPP");
+	   for(int j = 0;j<3;j++){
+		   for(int i = 0;i<8;i++,ct++)
+		   {
+			   inf[j] <<= 1;
+			   inf[j] |= (inf2[ct/8] & 1); 				   
+			   inf2[ct/8] >>= 1;
+			  
+		   }
+		   System.out.println(inf[j]);
+	   }	   
+	new Scanner(System.in).nextLine();*/
+	/*      
+	   BufferedImage orig = ImageIO.read(new File("D:\\Downloads\\Java\\StegOpenCV\\test15.jpg"));	   
+	   FileOutputStream out = new FileOutputStream("D:\\Downloads\\Java\\StegOpenCV\\test16.jpg");
+	   JpegEncoder x = new JpegEncoder(orig,90,out);
+	   FileInputStream in = new FileInputStream("D:\\Downloads\\Java\\StegOpenCV\\test16.jpg");
 	   
+	   byte[] info = new byte[45];
+	   String mere = "Di Muoio Eduard";
+	   info = mere.getBytes();
 	   
-	/* Mat z,zz;
-	   msg.convertTo(msg, CvType.CV_8S);	
-	   z = msg.rowRange(0, 8).colRange(0, 8);
-	   zz = msg.rowRange(0, 8).colRange(8, 16);	   
-	   System.out.println(z);
-	   Core.subtract(z, zz, z);
-	   System.out.println(z.dump()); */ 
+	  /* in.read(info, 0, 24);
+	   int c =0;
+	   for(byte zx : info){
+		   System.out.println(c+" "+zx+" "+(char)zx);
+		   c++;
+	   }
+	 //  criptDecriptInfo(info,val, mere.length());
+	   x.JpegObj.Comment = new String(info)+"  ";
+	   System.out.println("In main"+x.JpegObj.getComment());
+	   x.Compress();
+	   System.out.println("In main2"+x.JpegObj.getComment());	   
+	   */
+	   /*   
+	   int i,j,q,p, c= 0;
+	   List<Mat> spl = new ArrayList<Mat>(), spl2 = new ArrayList<Mat>(), spl3 = new ArrayList<Mat>();
+	   
+	   Mat orig = Highgui.imread("Samples/western.png");   
+	   Mat first = new Mat();
+	   orig.copyTo(first);
+	   char[] text = new char[key1.length()];
+	   key1.getChars(0, key1.length(), text, 0);
+	   
+	   Watermark.hideDCT(orig, text);
+	   Highgui.imwrite("Samples/western1.png", orig);
+	   msg = Highgui.imread("Samples/western1.png");		   
+	   msg.convertTo(msg, CvType.CV_32FC3);	   
+	   orig.convertTo(orig, CvType.CV_32FC3);
+	   first.convertTo(first, CvType.CV_32FC3);
+	   
+	   Core.split(msg, spl);
+	   Core.split(orig, spl2);
+	   Core.split(first, spl3);
+	  
+	   Mat deriv, origSub,firstSub, origSubCVT = new Mat(), derivCVT = new Mat(), firstCVT = new Mat();
+	   double a, b, pl, d = 10;
+	   int wa = 0,scr = 0;
+	   for(i = 0;i<msg.rows()-10;i+=8)
+		   for(j = 0;j<msg.cols()-10;j+=8)
+		   {			   			   
+			   deriv = spl.get(0).submat(i,i+8,j,j+8);		   
+			   origSub = spl2.get(0).submat(i,i+8,j,j+8);
+			   firstSub = spl3.get(0).submat(i,i+8,j,j+8);
+			  			   
+			   Core.dct(deriv, deriv);	
+			   Core.dct(origSub, origSub);	
+			   Core.dct(firstSub, firstSub);
+			//   System.out.println("DCT ORIG\n"+firstSub.dump());		   
+		//	   System.out.println("DCT ORIG DUPA\n"+origSub.dump());
+		   //    System.out.println("DCT DERIV\n"+deriv.dump());
+		       
+			   Core.divide(deriv, qnt, deriv);
+			   Core.divide(origSub, qnt, origSub);
+			   Core.divide(firstSub, qnt, firstSub);			   
+			   deriv.convertTo(derivCVT, CvType.CV_16SC1);
+			   origSub.convertTo(origSubCVT, CvType.CV_16SC1);			   
+			   firstSub.convertTo(firstCVT, CvType.CV_16SC1);
+			//   System.out.println("QUANT ORIG\n"+firstCVT.dump());		   
+			//   System.out.println("QUANT ORIG DUPA\n"+origSubCVT.dump());
+		 //      System.out.println("QUANT DERIV\n"+derivCVT.dump());
+			   for(q = 1;q<8;q++)
+				   for(p = 1;p<8;p++)
+				   {	
+					   a = origSubCVT.get(q, p)[0];
+					   b = derivCVT.get(q, p)[0];
+					   if(a != 0 && b != 0 && a != 1 && b != 1 && p + q != 0)
+					   { 
+						   if((a < 0 && b < 0) || (a > 0 && b > 0)){							   
+					   	//		System.out.println(a +" "+ b+" "+q+" "+p);
+					   			scr++;
+								if(++c == 5){
+									 p = 8; 
+									 q = 8;
+								}
+						   }						   
+					   }					   
+				   }
+			   c = 0;
+		   }
+	   System.out.println(scr); 
 
 /*	  Mat zr = Mat.zeros(msg.rows(),msg.cols(),CvType.CV_8UC3);
 	  for(byte b = 0;b<bit.length;b++)
