@@ -52,11 +52,12 @@ public class Watermark {
 						   coef = Math.round(sub.get(q, p)[0]); 
 						   
 						   // get coefs != 1 and 0
-						   if(coef != 0 && coef != 1 && p + q != 0 && ct/8 != msg.length ) 
-						   {		
+						   if(coef != 0 && p + q != 0 && ct/8 != msg.length ) 
+						   {		System.out.println(coef);
 							   // get 1 bit from current letter	
 							   bit = (char) ((msg[ct/8] >> ct % 8) & 1); 
 							   System.out.println("BIT:"+(byte)bit);
+							   
 							   // to write 0 -> coef must be negative, 1 -> positive
 							   if(bit == 0){
 								   if(coef > 0)
@@ -67,6 +68,7 @@ public class Watermark {
 									   coef = -coef;
 							   }
 							   sub.put(q, p, coef);
+							   System.out.println(coef);
 							   System.out.println(i+" "+j+" "+q+" "+p);
 							   // modify only first 5 coefs from each block
 							   if(++ct % 5 == 0){		
@@ -87,6 +89,7 @@ public class Watermark {
 		   BitSet msg = new BitSet();
 		   Mat sub, quant = new Mat(8, 8, CvType.CV_32FC1);	
 		   
+		   
 		   for (i = 0;i<8;i++)	// initialise quantizier
 			   quant.put(i,0, standardQuant[i]);
 		   
@@ -105,7 +108,7 @@ public class Watermark {
 					   for(p = 1;p<8;p++)
 					   {	
 						   coef = Math.round(sub.get(q, p)[0]);
-						   if(coef != 0 && coef != 1 && p + q != 0)
+						   if(coef != 0 && p + q != 0)
 						   { 	
 							    if(coef > 0){
 							    	msg.set(ct);	// set bits to obtain a byte array

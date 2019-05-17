@@ -643,9 +643,9 @@ public class OpenCV {
 	   byte[] values = new byte[3];
 	   byte[] bit = {1,2,4,8,16,32,64,-128};
 	   int ct = 0;
-	   Mat orig = Highgui.imread("Samples/western.png");   
+	/*   Mat orig = Highgui.imread("Samples/western.png");   
 	   Watermark.hideDCT(orig, key1);
-	   Highgui.imwrite("Samples/western1.png", orig);
+	   Highgui.imwrite("Samples/western1.png", orig);*/
 	   msg = Highgui.imread("Samples/western1.png");		   
 	  System.out.println( Watermark.extDCT(msg));
 	/*   System.out.println("STOPPP");
