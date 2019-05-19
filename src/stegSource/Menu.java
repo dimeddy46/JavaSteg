@@ -4,6 +4,7 @@ package stegSource;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.opencv.core.Core;
@@ -27,9 +28,9 @@ import java.awt.Window;
 @SuppressWarnings("serial")
 public class Menu extends JFrame {
 
-	final static Image noImage = ResourceLoader.loadImage("no-image-selected2.png"),
-				 fileImage = ResourceLoader.loadImage("file.png");
-	static String defDir;
+	final static Image noImage = ResourceLoader.loadImage("default-image.png"),
+					   fileImage = ResourceLoader.loadImage("document-image.png");
+	static String defDir = System.getProperty("user.dir")+"/Samples";
 	static Window owner;
 	int[] imgSize = {350, 210};
 	float univScale = 0;		
@@ -62,26 +63,28 @@ public class Menu extends JFrame {
 	
 	static void infoBox(String infoMessage)
     {
-        JOptionPane.showMessageDialog(null, infoMessage, "Information", JOptionPane.INFORMATION_MESSAGE);           
+		String message = "<html><body><div align='center'>"+infoMessage+"</div></body></html>";
+		JLabel messageLabel = new JLabel(message);
+		messageLabel.setFont(new Font("Consolas",Font.BOLD,14));
+		JOptionPane.showConfirmDialog(null, messageLabel, "Information", JOptionPane.DEFAULT_OPTION);     
     }
 	
 	static String getFileExtension(String file)
 	{
 		if(file == null)
 			return "";		
-		int x = file.lastIndexOf(".");		
-		if(x == -1)
+		int afterDot = file.lastIndexOf(".");
+		if(afterDot == -1)
 			return "";
 		
-		return file.toLowerCase().substring(x, file.length());
+		return file.toLowerCase().substring(afterDot, file.length());
 	}
 	
-	static boolean checkFileExtension(String file, String[] exts)
+	static boolean checkFileExtension(String file, String exts)
 	{
-		file = getFileExtension(file);		
-		for(String s : exts)
-			if(file.equals(s))
-				return true;
+		file = getFileExtension(file);
+		if(file.length() != 0 && exts.contains(file))
+			return true;
 		return false;
 	}
 
@@ -89,40 +92,55 @@ public class Menu extends JFrame {
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		univScale = (float) (screenSize.getWidth() > 1440? screenSize.getWidth() / 1440 : 1.0);
-		imgSize[0] *= (int)univScale;
-		imgSize[1] *= (int)univScale;
+		imgSize[0] *= univScale;
+		imgSize[1] *= univScale;
+
 		setTitle("StegLSB");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);
 		setSize((int)(400*univScale),(int)(300*univScale));
 		setLocationRelativeTo(null);
 		
+		Font font = new Font("Consolas",Font.BOLD,(int)(17*univScale));
 		JLabel title = new JLabel("Menu");
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);			
 				
 		JButton hideBtn = new JButton("Hide file");
 		JButton extBtn = new JButton(" Extract ");
+		JButton markBtn = new JButton("Watermark");
+		JButton extMarkBtn = new JButton("Verify mark");
 		
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(5,5,5,5);
 				
-		title.setFont(new Font("Consolas", Font.BOLD, (int)(20*univScale)));
+		title.setFont(font.deriveFont(20*univScale));
 		gbc.gridx = 1;
 		gbc.gridy = 0;		
 		panel.add(title, gbc);
 		gbc.weighty = 1;
-				
-		hideBtn.setFont(new Font("Consolas", Font.BOLD, (int)(17*univScale)));
+		
+		hideBtn.setFont(font);
 		gbc.gridx = 0;
 		gbc.gridy = 2;		
 		panel.add(hideBtn,gbc);
 				
-		extBtn.setFont(new Font("Consolas", Font.BOLD, (int)(17*univScale)));
+		extBtn.setFont(font);
 		gbc.gridx = 2;
 		gbc.gridy = 2;	
 		panel.add(extBtn,gbc);
+		
+		markBtn.setFont(font);
+		gbc.anchor = GridBagConstraints.PAGE_START;
+		gbc.gridx = 0;
+		gbc.gridy = 3;	
+		panel.add(markBtn,gbc);
 
+		extMarkBtn.setFont(font);
+		gbc.gridx = 2;
+		gbc.gridy = 3;	
+		panel.add(extMarkBtn,gbc);
+		
 		hideBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
@@ -137,9 +155,28 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				ExtractForm x = new ExtractForm();
+				ExtractForm x = new ExtractForm(0);
 				x.setVisible(true);
 				x = null;
+			}
+		});
+		markBtn.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{		
+				ExtractForm x = new ExtractForm(1);			// no need for another file
+				x.setVisible(true);	
+				x = null;
+			}
+		});
+		
+		extMarkBtn.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{
+			/*	ExtractForm x = new ExtractForm();
+				x.setVisible(true);
+				x = null;*/
 			}
 		});
 		addWindowListener(new WindowAdapter() {

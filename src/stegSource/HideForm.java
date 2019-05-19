@@ -42,7 +42,7 @@ public class HideForm extends JFrame {
 		int[] imgSize = m.getXY();
 		float scale = m.getUnivScale();
 		m = null;
-		
+
 		setTitle("StegLSB");
 		setSize((int)(790*scale), (int)(460*scale));
 		setResizable(false);	
@@ -64,7 +64,7 @@ public class HideForm extends JFrame {
 		JLabel modeTxt = new JLabel("Mode:");
 		JLabel pwdTxt = new JLabel("Password:");
 		
-		JComboBox<String> hideModeCombo = new JComboBox<>(new String[]{"Hecht", "LSB(text)", "Lossless"});		
+		JComboBox<String> hideModeCombo = new JComboBox<>(new String[]{"Hecht(img)", "Text", "All files"});		
 		JTextField pwdInput = new JTextField(); 
 		JButton confirmBtn = new JButton("Confirm");
 		
@@ -79,7 +79,7 @@ public class HideForm extends JFrame {
 		gbc.gridy = 0;	
 		gbc.anchor = GridBagConstraints.PAGE_START;
 		gbc.gridwidth = 3;
-		title.setFont(font.deriveFont(Font.BOLD, 22*scale));
+		title.setFont(font.deriveFont(22*scale));
 		panel.add(title, gbc);
 		
 		// select cover button	
@@ -98,13 +98,13 @@ public class HideForm extends JFrame {
 		// cover label(below cover button)		
 		gbc.gridx = 0;
 		gbc.gridy = 2;	
-		covTxt.setFont(font.deriveFont(Font.BOLD, 15*scale));
+		covTxt.setFont(font.deriveFont(15*scale));
 		panel.add(covTxt, gbc);
 
 		// message label(below message button)
 		gbc.gridx = 2;
 		gbc.gridy = 2;		
-		msgTxt.setFont(font.deriveFont(Font.BOLD, 15*scale));		
+		msgTxt.setFont(font.deriveFont(15*scale));		
 		panel.add(msgTxt, gbc);			
 		
 		// image cover repres.			
@@ -139,14 +139,14 @@ public class HideForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 5;
 		gbc.anchor = GridBagConstraints.PAGE_END;
-		modeTxt.setFont(font.deriveFont(Font.BOLD, 17*scale));	
+		modeTxt.setFont(font.deriveFont(17*scale));	
 		panel.add(modeTxt,gbc);
 		
 		// password label
 		gbc.gridwidth = 3;
 		gbc.gridx = 0;
 		gbc.gridy = 5;		
-		pwdTxt.setFont(font.deriveFont(Font.BOLD, 17*scale));
+		pwdTxt.setFont(font.deriveFont(17*scale));
 		panel.add(pwdTxt, gbc);
 		
 		// password input text field
@@ -169,7 +169,7 @@ public class HideForm extends JFrame {
 		gbc.gridx = 2;
 		gbc.gridy = 6;	
 		gbc.weighty = 3;		
-		confirmBtn.setFont(font.deriveFont(Font.BOLD, 15*scale));	
+		confirmBtn.setFont(font.deriveFont(15*scale));	
 		panel.add(confirmBtn, gbc);
 		
 		hideModeCombo.addActionListener (new ActionListener () {
@@ -196,8 +196,9 @@ public class HideForm extends JFrame {
 		{	
 			public void actionPerformed(ActionEvent e) 
 			{	
-				title.setText("Hide data");
-				JFileChooser fc = new JFileChooser();						
+				JFileChooser fc = new JFileChooser();
+				
+				// set previously chosen dir
 				if(Menu.defDir != null)
 					fc.setCurrentDirectory(new File(Menu.defDir));
 				
@@ -205,21 +206,28 @@ public class HideForm extends JFrame {
 				{	
 					BufferedImage img;
 					ImageIcon icon = null;
-					int sizeImg = 0;					
+					int imgBytes = 0;					
+					File selectedFile = fc.getSelectedFile();
 					
-					if(!Menu.checkFileExtension(fc.getSelectedFile().toString(), new String[]{".png",".bmp"}))
+					if(!Menu.checkFileExtension(selectedFile.toString(), ".png.bmp"))
 					{
-						Menu.infoBox("Invalid file. Please select a .PNG or .BMP as your cover.");
+						Menu.infoBox("Please select a .PNG or .BMP as your cover.");
 						return;
-					}					
+					}
+					
 					try {
-						img = ImageIO.read(fc.getSelectedFile());						
-						sizeImg = img.getHeight() * img.getWidth() * 3;
+						img = ImageIO.read(selectedFile);						
+						imgBytes = img.getHeight() * img.getWidth() * 3;
 						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 						covImg.setIcon(icon);						
 					}
-					catch (Exception e1) { }
-					finally { 					// garbage collector
+					catch (Exception ex) 
+					{
+						Menu.infoBox("This file is invalid.");
+						return;
+					}
+					finally 
+					{ 					// garbage collector
 						if(icon != null)
 						{
 							icon.getImage().flush(); 
@@ -229,10 +237,10 @@ public class HideForm extends JFrame {
 						Menu.defDir = fc.getCurrentDirectory().toString();
 					}
 					
-					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								  "</font><br/>Size: "+NumberFormat.getInstance().format(sizeImg)+" bytes</html>");	
+					covTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
+								  "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");	
 					
-					covFileName = fc.getSelectedFile().toString();					
+					covFileName = selectedFile.toString();					
 				}
 				System.gc();
 			}
@@ -242,43 +250,50 @@ public class HideForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				title.setText("Hide data");
 				JFileChooser fc = new JFileChooser();					
 				if(Menu.defDir != null)
 					fc.setCurrentDirectory(new File(Menu.defDir));
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
-				{
+				{	
 					BufferedImage img;
 					ImageIcon icon = null;
-					long sizeFile = 0;
-					int index = hideModeCombo.getSelectedIndex();
-				
+					int imgBytes = 0;
+					File selectedFile = fc.getSelectedFile();
+					
 					try {						
-    					img = ImageIO.read(fc.getSelectedFile());
-						sizeFile = img.getHeight() * img.getWidth() * 3;
+    					img = ImageIO.read(selectedFile);
+    					imgBytes = img.getHeight() * img.getWidth() * 3;
 						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 						msgImg.setIcon(icon);
-					} 
-					catch (Exception ex) 
-					{
-						if(index == 0)
+						
+						hideModeCombo.setSelectedIndex(0);
+					}
+					catch (NullPointerException ex) 
+					{	
+						if(selectedFile.length() == 0)
 						{
-							Menu.infoBox("Invalid file. Please select a image as your message for\nHecht steganography or choose Lossless hiding mode.");
+							Menu.infoBox("This file is invalid.");
 							return;
 						}
-						else if(index == 1 && !Menu.checkFileExtension(fc.getSelectedFile().toString(), new String[]{".txt"}))
-						{
-							Menu.infoBox("Invalid file. A text file is required for LSB hiding mode.");
-							return;	
-						}														
-						else if(index == 2)
-						{	
-							icon = new ImageIcon(Menu.fileImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-							msgImg.setIcon(icon);	
-						}						
+						
+						if(Menu.checkFileExtension(selectedFile.toString(), ".txt"))
+							hideModeCombo.setSelectedIndex(1);
+						else 
+							hideModeCombo.setSelectedIndex(2);	
+						
+						icon = new ImageIcon(Menu.fileImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+						msgImg.setIcon(icon);	
+						imgBytes = (int)selectedFile.length();
 					}	
-					finally { 					// garbage collector
+					catch (ArrayIndexOutOfBoundsException ex2)
+					{
+						Menu.infoBox("This file is invalid.");
+						return;
+					}
+					catch(Exception ex3){System.out.println(ex3.toString()); }
+					finally 
+					{ 					// garbage collector
 						if(icon != null)
 						{
 							icon.getImage().flush(); 
@@ -287,16 +302,12 @@ public class HideForm extends JFrame {
 						img = null;
 						Menu.defDir = fc.getCurrentDirectory().toString();
 					}
-					
-					if(index == 1 || index == 2)	
-						sizeFile = fc.getSelectedFile().length();
 
-					msgTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								   "</font><br/>Size: "+NumberFormat.getInstance().format(sizeFile)+" bytes</html>");	
+					msgTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
+								   "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");	
 					
-					msgFileName = fc.getSelectedFile().toString();	
+					msgFileName = selectedFile.toString();	
 					memoMsgStr = msgTxt.getText();					
-					
 				}
 				System.gc();
 			}
@@ -311,7 +322,7 @@ public class HideForm extends JFrame {
 				int index = hideModeCombo.getSelectedIndex();
 				
 				// if a text file is selected and mode = LSB(text), overwrite the msgInput text
-				if(index == 1 && Menu.checkFileExtension(msgFileName, new String[]{".txt"}) )	
+				if(index == 1 && Menu.checkFileExtension(msgFileName, ".txt") )	
 					strMessage = new String(OpenCV.readFile(msgFileName));	
 				
 				if(strMessage.indexOf("\\") != -1)
@@ -336,9 +347,9 @@ public class HideForm extends JFrame {
 					
 				if(index == 0)
 				{	
-					if(!Menu.checkFileExtension(msgFileName, new String[]{".bmp",".png",".jpg"}))
+					if(!Menu.checkFileExtension(msgFileName, ".bmp.png.jpg"))
 					{	
-						Menu.infoBox("Invalid file. Please select a image file as message for Hecht steganography.");					
+						Menu.infoBox("Invalid file. Please select a image file as message for Hecht mode.");					
 						msgFileName = null;
 						msgTxt.setText("");	
 						
@@ -357,7 +368,7 @@ public class HideForm extends JFrame {
 				
 				if(rez.rows() == 1)
 				{
-					Menu.infoBox("The message file is bigger than cover file or an empty message file has been selected.\n"
+					Menu.infoBox("The message file is bigger than cover file or an empty message file has been selected.<br>"
 							   + "For Hecht the required cover must be 3 times bigger than the message.");				
 					return;
 				}
@@ -367,13 +378,11 @@ public class HideForm extends JFrame {
 				
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
-					// using [key] as the selected file name
 					key = fc.getSelectedFile().toString();  // if no extension or an unsupported one is provided, assign .png	
-					if(index == 2 && Menu.checkFileExtension(key, new String[]{".bmp"})){
+					if(index == 2 && Menu.checkFileExtension(key, ".bmp"))	// can't write 16 bit images on BMP
 						key = key.replace(".bmp", ".png");
-						System.out.println("DA");
-					}
-					if(!Menu.checkFileExtension(key, new String[]{".png",".bmp"}))
+					
+					if(!Menu.checkFileExtension(key, ".png.bmp"))
 						key += ".png";	
 					Highgui.imwrite(key, rez);	
 					Menu.infoBox("Image hidden succesfully!");

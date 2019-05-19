@@ -23,12 +23,13 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.text.NumberFormat;
+import java.util.Arrays;
 
 @SuppressWarnings("serial")
 public class ExtractForm extends JFrame {	
 	String covFileName;	
 	
-	ExtractForm() 
+	ExtractForm(int mode) 
 	{			
 		Menu m = new Menu();
 		int[] imgSize = m.getXY();
@@ -36,22 +37,22 @@ public class ExtractForm extends JFrame {
 		m = null;
 		
 		setTitle("StegLSB");
-		setSize((int)(650*scale), (int)(455*scale));
+		setSize((int)(600*scale), (int)(455*scale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
-		JLabel title = new JLabel("Extract hidden data");				
+		JLabel title = new JLabel(mode == 0?"Extract hidden data": "Watermark image");				
 		
 		JButton covBtn = new JButton("Select cover");
 		JLabel covTxt = new JLabel("<html><br/><br/></html>");		
 		JLabel covImg = new JLabel();
 		
-		JLabel pwdTxt = new JLabel("Password:");
+		JLabel pwdTxt = new JLabel(mode == 0?"Password:":"Insert mark:");
 		JTextField pwdInput = new JTextField(); 
-		JButton confirmBtn = new JButton("Confirm");	
+		JButton confirmBtn = new JButton("Confirm"), confirmWatermarkBtn = new JButton("Confirm");	
 		
 		Font font = new Font("Consolas", Font.BOLD, (int)(14*scale));
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -108,13 +109,18 @@ public class ExtractForm extends JFrame {
 		pwdInput.setFont(font);
 		panel.add(pwdInput, gbc);
 		
-		// confirm button
+		// confirm button for "extract" window and "watermark"
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
-		gbc.anchor = GridBagConstraints.EAST;		
-		confirmBtn.setFont(font.deriveFont(Font.BOLD, 15*scale));	
-		panel.add(confirmBtn, gbc);
-		
+		gbc.anchor = GridBagConstraints.EAST;	
+		if(mode == 0){	
+			confirmBtn.setFont(font.deriveFont(Font.BOLD, 15*scale));	
+			panel.add(confirmBtn, gbc);
+		}
+		else {
+			confirmWatermarkBtn.setFont(font.deriveFont(Font.BOLD, 15*scale));	
+			panel.add(confirmWatermarkBtn, gbc);
+		}
 		covBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
@@ -127,12 +133,15 @@ public class ExtractForm extends JFrame {
 				{	
 					BufferedImage img = null;				
 					ImageIcon icon = null;
+					File selectedFile = fc.getSelectedFile();
+					
 					try {
-						img = ImageIO.read(fc.getSelectedFile());	
+						img = ImageIO.read(selectedFile);	
 						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 						covImg.setIcon(icon);				
 					} 
-					catch (Exception e1) { 
+					catch (Exception ex) 
+					{ 
 						Menu.infoBox("Invalid file. Please select an image as your cover.");
 						return;
 					}	
@@ -147,10 +156,8 @@ public class ExtractForm extends JFrame {
 					}
 					
 					covFileName = fc.getSelectedFile().toString();
-					covTxt.setText("<html>File: <font color='red'>"+fc.getSelectedFile().getName()+
-								  "</font><br/>Size: "+NumberFormat.getInstance().format(fc.getSelectedFile().length())+" bytes</html>");	
-					
-					
+					covTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
+								  "</font><br/>Size: "+NumberFormat.getInstance().format(selectedFile.length())+" bytes</html>");			
 				}
 				System.gc();
 			}			
@@ -160,10 +167,11 @@ public class ExtractForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{	
-				boolean found = false;
+				
 				JFileChooser fc = new JFileChooser();
-				String key = pwdInput.getText(), msgStr = null, fileName = null;			
-				byte[] msgByte;
+				String key = pwdInput.getText(), fileName, type;	 
+				byte[] msgByte = null;
+				byte found = -1;
 				
 				if(covFileName == null)
 				{
@@ -178,53 +186,56 @@ public class ExtractForm extends JFrame {
 				}	
 				
 				Mat cov = Highgui.imread(covFileName), msgMat;
-
-				if((msgMat = OpenCV.extImgHecht(cov, key)).cols() != 1)
+				
+				if((msgMat = OpenCV.extImgHecht(cov, key)).cols() != 1) 
 				{
-					Menu.infoBox("A hidden IMAGE has been found. Please select a save location.");
-					if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
-					{
-						 fileName = fc.getSelectedFile().toString();
-						 if(!Menu.checkFileExtension(fileName, new String[]{".png",".bmp",".jpg"}))
-							 fileName += ".png";						 
-						 Highgui.imwrite(fileName, msgMat);
-						 found = true;
-					}
-					else return;
+					found = 0;
+					type = "IMAGE";
 				}
-				else if((msgStr = OpenCV.extImgText(cov, key)) != "\\pwdincorect")
+				else if(!Arrays.equals(msgByte = OpenCV.extImgText(cov, key).getBytes(), "\\pwdincorect".getBytes())) 
 				{
-					Menu.infoBox("A hidden TEXT file has been found. Please select a save location.");
-					if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
-					{
-						 fileName = fc.getSelectedFile().toString();
-						 if(!Menu.checkFileExtension(fileName, new String[]{".txt"}))
-							 fileName += ".txt";	
-						 
-						 OpenCV.writeFile(fileName, msgStr.getBytes());
-						 found = true;
-					}
-					else return;
+					found = 1;
+					type = "TEXT";
 				}
-			
-				cov = Highgui.imread(covFileName, -1); 	// read 16 bit images(can't use convertTo, hidden data would be lost)
-				if(cov.depth() != 0 && (msgByte = OpenCV.extLosslessFile(cov, key)) != null )
+				else 
 				{
-					String fileType = OpenCV.getExt();
-					Menu.infoBox("A hidden "+fileType.toUpperCase()+" file has been found. Please select a save location.");
-					if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
+					// read 16 bit images
+					cov = Highgui.imread(covFileName, -1); 	
+					if(cov.depth() != 0 && (msgByte = OpenCV.extLosslessFile(cov, key)) != null ) 
 					{
-						 fileName = fc.getSelectedFile().toString()+fileType;						 				 
-						 OpenCV.writeFile(fileName, msgByte);
-						 found = true;
+						found = 2;
+						type = OpenCV.getExt();
 					}
-					else return;
+					else 
+					{
+						Menu.infoBox("The password is invalid or no data is hidden inside the file.");
+						return;
+					}
 				}
 				
-				if(found == true)
-					Menu.infoBox("The file has been extracted succesfully!");				
-				else 
-					Menu.infoBox("The password is invalid or no data is hidden inside the file.");
+				Menu.infoBox("A hidden "+type.toUpperCase()+" has been found. Please select a save location.");	
+				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
+				{							 				
+					 fileName = fc.getSelectedFile().toString();
+					 
+					 if(found == 0){      		// found Hecht image hidden inside cover 
+						 
+						 if(!Menu.checkFileExtension(fileName,".png.bmp.jpg"))
+							 fileName += ".png";							 
+						 Highgui.imwrite(fileName, msgMat);
+					 }
+					 else  {
+						 if(found == 1)         // found text message	
+						 { 		
+							 if(!Menu.checkFileExtension(fileName,".txt"))
+								 fileName += ".txt";
+						 }
+						 else  		    		// found lossless file type(All Files)					
+							 fileName = fc.getSelectedFile().toString()+type;
+
+						 OpenCV.writeFile(fileName, msgByte);
+					 }
+				}				
 			}
 		});
 		

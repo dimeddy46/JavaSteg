@@ -147,6 +147,6 @@ public class Watermark {
 							}						   
 					    }
 			   }   
-		   return new String(msg.toByteArray());			  
+		   return new String(msg.toByteArray());
 	   }
 }

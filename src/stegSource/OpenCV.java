@@ -53,15 +53,11 @@ public class OpenCV {
 // -----------------------------------------------------------------------------------
  
    static String toBin(int dec, int bits)
-   {
+   {   
 	   if(dec < 0)
 		   dec &= 0xFF;
-       String s = "";
-       while (dec > 0)
-       {
-           s =  ( (dec % 2 ) == 0 ? "0" : "1") +s;
-           dec = dec / 2;
-       }
+	   
+       String s =  Integer.toBinaryString(dec);
        while(s.length() < bits)
     	   s = "0" + s;   
        return s;
@@ -154,14 +150,11 @@ public class OpenCV {
 	   for(int i = 0;i < len;i++)
 	   {
 		   val = key.toString().hashCode();
-		//   if(i < 20)System.out.print(i+" IN:"+info[i]+" "+(char)info[i]+" ---- ");
 		   while(val != -1 && val != 0)
 		   {
 			   info[i] ^= (byte)val;
 			   val >>= 8;
-		   }		   
-		  // if(i < 20) System.out.print(i+" OUT:"+info[i]+" "+(char)info[i]+" KEY: "+key+" \n");	
-		  
+		   }		   		  
 		   key.setCharAt(0, (char)(key.charAt(0) + 1)); // key[k]++;
 		   if(key.charAt(0) == 126)
 		   {
@@ -185,7 +178,7 @@ public class OpenCV {
 	   StringBuilder buffer = new StringBuilder(""),
 			         keyBuild = new StringBuilder(key);	   
 	   
-	   for(bt = 1;bt < 5;bt++)
+	   for(bt = 1;bt < 4;bt++)
 	   {	
 		   while(msg.length() != 3)
 		   {
@@ -223,7 +216,7 @@ public class OpenCV {
 	                 keyBuild = new StringBuilder(key);
 	   int len, btCont = 0;
 	   byte[] encrypt, pixel = new byte[3];
-	   
+
 	   // ---- init ------- EOS  
 	   msg = "\\st" + msg + "\\";
 	   encrypt = msg.getBytes();	  
@@ -231,18 +224,16 @@ public class OpenCV {
 	   if(len <= 4)
 		   return Mat.zeros(1, 1, CvType.CV_8U);
 	   
-	   byte bt = 1;
+	   byte bt = 1;	   
 	   while((cov.rows() * cov.cols() * 3) / (8.0 / bt) < len * (8.0 / bt))	// choosing amount of LSB [bt] to write on
 		   bt++;															// depending of image size
-
-	   if(bt >= 5)								// at more than 4 LSB changed, the cover gets too much noise
+	   if(bt > 3)								// at more than 3 LSB changed, the cover gets too much noise
 		   return Mat.zeros(1, 1, CvType.CV_8U);
-	  
+	   
 	   criptDecriptInfo(encrypt, keyBuild, len);
-	   
 	   for(byte ind : encrypt)	   
-		   repBin += toBin(ind, 8); 
-	   
+		  repBin = repBin.concat(toBin(ind, 8));
+
 	   len *= 8;
 	   if(bt == 3) 
 		   repBin += "10";			// number of LSB to hide on == 3? add 2 characters so the last operation gets 3 
@@ -645,8 +636,13 @@ public class OpenCV {
 	   byte[] bit = {1,2,4,8,16,32,64,-128};
 	   int ct = 0, write = 0,i, pnm;
 	   
+	   String mp = new String(readFile("Samples/text1.txt"));
 	   String img = "Samples/road", ext = ".png";
-	   if(write == 1)
+	   System.out.println(mp.length());
+	   
+	   hideImgText(cov, mp,"12345");
+
+	/*   if(write == 1)
 	   {
 		   Mat orig = Highgui.imread(img+ext);   
 		   Watermark.hideDCT(orig, key1);
