@@ -636,31 +636,51 @@ public class OpenCV {
    {	
 	     Mat msg, cov = Highgui.imread("Samples/house.bmp"), 
 			   ster = Highgui.imread("Samples/bridge.png");
-	   String key1 = "hestin", msg1 = "12345";
+	   String key1 = "COPY", msg1 = "12345";
 	   StringBuilder val = new StringBuilder("hest"); 
 	   byte bt = 1, y;	   
 	   short[] rez = new short[3];
 	   byte[] values = new byte[3];
+	   int[] freq = new int[256];
 	   byte[] bit = {1,2,4,8,16,32,64,-128};
-	   int ct = 0;
-	/*   Mat orig = Highgui.imread("Samples/western.png");   
-	   Watermark.hideDCT(orig, key1);
-	   Highgui.imwrite("Samples/western1.png", orig);*/
-	   msg = Highgui.imread("Samples/western1.png");		   
-	  System.out.println( Watermark.extDCT(msg));
-	/*   System.out.println("STOPPP");
-	   for(int j = 0;j<3;j++){
-		   for(int i = 0;i<8;i++,ct++)
-		   {
-			   inf[j] <<= 1;
-			   inf[j] |= (inf2[ct/8] & 1); 				   
-			   inf2[ct/8] >>= 1;
-			  
+	   int ct = 0, write = 0,i, pnm;
+	   
+	   String img = "Samples/road", ext = ".png";
+	   if(write == 1)
+	   {
+		   Mat orig = Highgui.imread(img+ext);   
+		   Watermark.hideDCT(orig, key1);
+		   Highgui.imwrite(img+"1"+ext, orig);
+	   }
+	   msg = Highgui.imread(img+"1"+ext);
+	   
+	   String p = Watermark.extDCT(msg);	  
+	   for(i = 1;i<=p.length()/100;i++)
+		   	System.out.println(i+" "+ p.substring(100*(i-1), 100*i));
+	   System.out.println(i+" "+ p.substring(100*(i-1), 100*(i-1)+ p.length()-100*(i-1)));
+	  
+	   for(i = 0;i<p.length();i++)
+	   {
+		   pnm = (int)p.charAt(i);
+		   if(pnm >= 0 && pnm <= 255)
+			   freq[pnm]++;
+	   }
+	   
+	   double pz;
+	   int leng = p.length();
+	   System.out.println(leng);
+	   double sum = 0;
+	   for(i = 0;i<=255;i++)
+	   {	
+		   pz = freq[i]*1.0 / leng;
+		   if(pz > 0.01){
+			  System.out.printf("PROB: %.4f FREQUENCY: %d | (DEC) %d (ASCII) %c\n",pz, freq[i], i, i);
+			  sum += freq[i];
 		   }
-		   System.out.println(inf[j]);
-	   }	   
-	new Scanner(System.in).nextLine();*/
-	/*      
+	   }
+	   System.out.printf("TOTAL: %.4f\n", sum / leng);
+	   
+	/*
 	   BufferedImage orig = ImageIO.read(new File("D:\\Downloads\\Java\\StegOpenCV\\test15.jpg"));	   
 	   FileOutputStream out = new FileOutputStream("D:\\Downloads\\Java\\StegOpenCV\\test16.jpg");
 	   JpegEncoder x = new JpegEncoder(orig,90,out);

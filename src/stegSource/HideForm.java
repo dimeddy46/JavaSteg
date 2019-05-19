@@ -253,7 +253,7 @@ public class HideForm extends JFrame {
 					ImageIcon icon = null;
 					long sizeFile = 0;
 					int index = hideModeCombo.getSelectedIndex();
-					
+				
 					try {						
     					img = ImageIO.read(fc.getSelectedFile());
 						sizeFile = img.getHeight() * img.getWidth() * 3;
