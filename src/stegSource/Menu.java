@@ -4,7 +4,6 @@ package stegSource;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.opencv.core.Core;
@@ -98,7 +97,7 @@ public class Menu extends JFrame {
 		setTitle("StegLSB");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);
-		setSize((int)(400*univScale),(int)(300*univScale));
+		setSize((int)(400*univScale),(int)(260*univScale));
 		setLocationRelativeTo(null);
 		
 		Font font = new Font("Consolas",Font.BOLD,(int)(17*univScale));
@@ -106,21 +105,23 @@ public class Menu extends JFrame {
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);			
 				
-		JButton hideBtn = new JButton("Hide file");
+		JButton hideBtn = new JButton("Hide data");
 		JButton extBtn = new JButton(" Extract ");
 		JButton markBtn = new JButton("Watermark");
-		JButton extMarkBtn = new JButton("Verify mark");
+		JButton extMarkBtn = new JButton("Check mark");
 		
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(5,5,5,5);
+		gbc.insets = new Insets(10,0,10,0);
 				
 		title.setFont(font.deriveFont(20*univScale));
 		gbc.gridx = 1;
-		gbc.gridy = 0;		
+		gbc.gridy = 0;
+		gbc.anchor = GridBagConstraints.CENTER;		
 		panel.add(title, gbc);
+		
 		gbc.weighty = 1;
 		
-		hideBtn.setFont(font);
+		hideBtn.setFont(font);		
 		gbc.gridx = 0;
 		gbc.gridy = 2;		
 		panel.add(hideBtn,gbc);
@@ -130,6 +131,8 @@ public class Menu extends JFrame {
 		gbc.gridy = 2;	
 		panel.add(extBtn,gbc);
 		
+		gbc.weighty = 2;
+	
 		markBtn.setFont(font);
 		gbc.anchor = GridBagConstraints.PAGE_START;
 		gbc.gridx = 0;
@@ -145,7 +148,7 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{		
-				HideForm x = new HideForm();			
+				HideForm x = new HideForm(0);			
 				x.setVisible(true);	
 				x = null;
 			}
@@ -164,7 +167,7 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{		
-				ExtractForm x = new ExtractForm(1);			// no need for another file
+				ExtractForm x = new ExtractForm(1);		// no need for another class just to change 3 functions
 				x.setVisible(true);	
 				x = null;
 			}
@@ -174,9 +177,9 @@ public class Menu extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-			/*	ExtractForm x = new ExtractForm();
+				HideForm x = new HideForm(1);			// same here
 				x.setVisible(true);
-				x = null;*/
+				x = null;
 			}
 		});
 		addWindowListener(new WindowAdapter() {

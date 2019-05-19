@@ -26,6 +26,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import org.opencv.core.Mat;
@@ -36,7 +37,7 @@ public class HideForm extends JFrame {
 	String covFileName, msgFileName, memoMsgStr = "";
 	
 	
-	HideForm() 
+	HideForm(int mode) 
 	{		
 		Menu m = new Menu();
 		int[] imgSize = m.getXY();
@@ -44,19 +45,19 @@ public class HideForm extends JFrame {
 		m = null;
 
 		setTitle("StegLSB");
-		setSize((int)(790*scale), (int)(460*scale));
+		setSize((int)(790*scale), (int)((mode == 0?460:440)*scale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
-		JLabel title = new JLabel("Hide data");
+		JLabel title = new JLabel(mode == 0?"Hide data" : "Verify watermaked images");
 				
 		JButton covBtn = new JButton("Select cover");
 		JButton msgBtn = new JButton("Select message");
 		JLabel covTxt = new JLabel("<html><br/><br/></html>");
-		JLabel msgTxt = new JLabel("<html><br/><br/></html>");
+		JLabel msgTxt = new JLabel(mode == 0?"<html><br/><br/></html>":"Output:");
 			
 		JLabel covImg = new JLabel();	
 		JLabel msgImg = new JLabel();
@@ -66,7 +67,7 @@ public class HideForm extends JFrame {
 		
 		JComboBox<String> hideModeCombo = new JComboBox<>(new String[]{"Hecht(img)", "Text", "All files"});		
 		JTextField pwdInput = new JTextField(); 
-		JButton confirmBtn = new JButton("Confirm");
+		JButton confirmBtn = new JButton("Confirm"), confirmWatermarkBtn = new JButton("Confirm | Update");
 		
 		JTextArea msgInput = new JTextArea();	// LSB TEXT MODE
 		
@@ -82,20 +83,39 @@ public class HideForm extends JFrame {
 		title.setFont(font.deriveFont(22*scale));
 		panel.add(title, gbc);
 		
-		// select cover button	
 		gbc.gridwidth = 1;
-		gbc.gridx = 0;
-		gbc.gridy = 1;	
+			
+		// select cover button	
+		if(mode == 0){
+			gbc.gridx = 0;
+			gbc.gridy = 1;
+		}
+		else {
+			gbc.gridx = 0;
+			gbc.gridy = 5;	
+			gbc.weighty = 5;
+		}			
 		covBtn.setFont(font);			
-		panel.add(covBtn,gbc);		
+		panel.add(covBtn,gbc);	
+			
+		// select message button | confirm button from watermark
+		if(mode == 0){
+			gbc.gridx = 2;
+			gbc.gridy = 1;
+			msgBtn.setFont(font);
+			panel.add(msgBtn,gbc);
+		}
+		else {
+			gbc.gridx = 2;
+			gbc.gridy = 5;	
+			confirmWatermarkBtn.setFont(font);
+			panel.add(confirmWatermarkBtn,gbc);
+		}
+
+		gbc.weighty = mode == 0? 0 : 1;
+		gbc.anchor = GridBagConstraints.PAGE_END;
 		
-		// select message button
-		gbc.gridx = 2;
-		gbc.gridy = 1;
-		msgBtn.setFont(font);
-		panel.add(msgBtn,gbc);
-		
-		// cover label(below cover button)		
+		// cover label(below cover button)	
 		gbc.gridx = 0;
 		gbc.gridy = 2;	
 		covTxt.setFont(font.deriveFont(15*scale));
@@ -106,71 +126,85 @@ public class HideForm extends JFrame {
 		gbc.gridy = 2;		
 		msgTxt.setFont(font.deriveFont(15*scale));		
 		panel.add(msgTxt, gbc);			
-		
-		// image cover repres.			
+					
+		// image cover repres.	
 		gbc.weighty = 1;
 		gbc.weightx = 1;		
 		gbc.gridx = 0;
-		gbc.gridy = 4;
-		gbc.anchor = GridBagConstraints.PAGE_START;		
+		gbc.gridy = 4;	
+		gbc.anchor = GridBagConstraints.PAGE_START;	
 		ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 		covImg.setIcon(icon);
 		panel.add(covImg,gbc);
 		
-		// text input message (text area from LSB(text) mode)	
+		// message input (text area from LSB(text) mode)	
 		gbc.gridx = 2;				// LSB(text) mode -> showing textArea
-		gbc.gridy = 4;		    			    			    		
-		msgInput.setPreferredSize(new Dimension(imgSize[0], imgSize[1]));
+		gbc.gridy = 4;		    			    			    				
 		msgInput.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
 		msgInput.setLineWrap(true);
-		msgInput.setFont(font);
-		msgInput.setVisible(false);		
-		panel.add(msgInput, gbc);
-		
-		// image message repres.	
-		gbc.gridx = 2;				// Hecht mode -> showing message image
-		gbc.gridy = 4;	
-		msgImg.setIcon(icon);		// declared at image cover
-		icon.getImage().flush();	// garbage collector
-		icon = null;	
-		panel.add(msgImg,gbc);
-		
-		// label hide mode
-		gbc.gridx = 0;
-		gbc.gridy = 5;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		modeTxt.setFont(font.deriveFont(17*scale));	
-		panel.add(modeTxt,gbc);
-		
-		// password label
-		gbc.gridwidth = 3;
-		gbc.gridx = 0;
-		gbc.gridy = 5;		
-		pwdTxt.setFont(font.deriveFont(17*scale));
-		panel.add(pwdTxt, gbc);
-		
-		// password input text field
-		gbc.gridx = 0;
-		gbc.gridy = 6;	
-		gbc.anchor = GridBagConstraints.PAGE_START;
-		pwdInput.setFont(font);
-		pwdInput.setPreferredSize(new Dimension((int)(210*scale),(int)(25*scale)));	
-		panel.add(pwdInput, gbc);		
-		
-		// combobox hide mode	
-		gbc.gridwidth = 1;		
-		gbc.gridx = 0;
-		gbc.gridy = 6;		
-		hideModeCombo.setSelectedIndex(0);
-		hideModeCombo.setFont(font);		
-		panel.add(hideModeCombo, gbc);
+		msgInput.setWrapStyleWord(true);
+		JScrollPane scroll = new JScrollPane (msgInput);
+		scroll.setPreferredSize(new Dimension(imgSize[0], imgSize[1]));
+		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);		
+		panel.add(scroll,gbc);
+				
+		if(mode == 0)				// set parameters for "Hide data" window
+		{
+			msgInput.setFont(font);
+			msgInput.setVisible(false);	
+			scroll.setVisible(false);
 			
-		// confirm button	
-		gbc.gridx = 2;
-		gbc.gridy = 6;	
-		gbc.weighty = 3;		
-		confirmBtn.setFont(font.deriveFont(15*scale));	
-		panel.add(confirmBtn, gbc);
+			// image message repres.	
+			gbc.gridx = 2;				// Hecht mode -> showing message image
+			gbc.gridy = 4;	
+			msgImg.setIcon(icon);		// declared at image cover
+			icon.getImage().flush();	// garbage collector
+			icon = null;	
+			panel.add(msgImg,gbc);
+		
+			// label hide mode
+			gbc.gridx = 0;
+			gbc.gridy = 5;
+			gbc.anchor = GridBagConstraints.PAGE_END;
+			modeTxt.setFont(font.deriveFont(17*scale));	
+			panel.add(modeTxt,gbc);
+			
+			// password label
+			gbc.gridwidth = 3;
+			gbc.gridx = 0;
+			gbc.gridy = 5;		
+			pwdTxt.setFont(font.deriveFont(17*scale));
+			panel.add(pwdTxt, gbc);
+		
+			// password input text field
+			gbc.gridx = 0;
+			gbc.gridy = 6;	
+			gbc.anchor = GridBagConstraints.PAGE_START;
+			pwdInput.setFont(font);
+			pwdInput.setPreferredSize(new Dimension((int)(210*scale),(int)(25*scale)));	
+			panel.add(pwdInput, gbc);		
+		
+			// combobox hide mode			
+			gbc.gridwidth = 1;		
+			gbc.gridx = 0;
+			gbc.gridy = 6;		
+			hideModeCombo.setSelectedIndex(0);
+			hideModeCombo.setFont(font);		
+			panel.add(hideModeCombo, gbc);
+		
+			// confirm button	
+			gbc.gridx = 2;
+			gbc.gridy = 6;	
+			gbc.weighty = 3;		
+			confirmBtn.setFont(font.deriveFont(15*scale));	
+			panel.add(confirmBtn, gbc);
+		}
+		else				// set parameters for "Check watermark" window
+		{
+			msgInput.setFont(font.deriveFont(12*scale));
+			msgInput.setEditable(false);
+			msgInput.setVisible(true);
+		}
 		
 		hideModeCombo.addActionListener (new ActionListener () {
 		    public void actionPerformed(ActionEvent e) 
@@ -178,12 +212,14 @@ public class HideForm extends JFrame {
 		    	int index = hideModeCombo.getSelectedIndex();
 		        if(index == 0 || index == 2)
 		        {
-		        	msgInput.setVisible(false);
+		        	scroll.setVisible(false);
+		        	msgInput.setVisible(false);		        	
 		        	msgImg.setVisible(true);
 		        	msgTxt.setText(memoMsgStr);
 		        }
 		        else if(index == 1)
 		        {		        	
+		        	scroll.setVisible(true);
 		        	msgInput.setVisible(true);
 		        	msgImg.setVisible(false);	
 		        	memoMsgStr = msgTxt.getText();
@@ -213,8 +249,7 @@ public class HideForm extends JFrame {
 					{
 						Menu.infoBox("Please select a .PNG or .BMP as your cover.");
 						return;
-					}
-					
+					}					
 					try {
 						img = ImageIO.read(selectedFile);						
 						imgBytes = img.getHeight() * img.getWidth() * 3;
@@ -238,8 +273,7 @@ public class HideForm extends JFrame {
 					}
 					
 					covTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
-								  "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");	
-					
+								  "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");						
 					covFileName = selectedFile.toString();					
 				}
 				System.gc();
@@ -304,8 +338,7 @@ public class HideForm extends JFrame {
 					}
 
 					msgTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
-								   "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");	
-					
+								   "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");						
 					msgFileName = selectedFile.toString();	
 					memoMsgStr = msgTxt.getText();					
 				}
@@ -396,7 +429,22 @@ public class HideForm extends JFrame {
 				}
 			}
 		});
-		
+		confirmWatermarkBtn.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent e)
+			{			
+				if(covFileName == null)
+				{
+					Menu.infoBox("Please select a cover image.");
+					return;
+				}
+				
+				Mat cov = Highgui.imread(covFileName);
+				String rez = Watermark.extDCT(cov); 
+				rez = Watermark.getStatistics(rez);
+				msgInput.setText(rez);
+			}
+		});
 		addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
             	Menu.owner.toFront();            	

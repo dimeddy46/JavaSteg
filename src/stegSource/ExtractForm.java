@@ -1,5 +1,6 @@
 package stegSource;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import javax.imageio.ImageIO;
@@ -22,6 +23,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
@@ -44,13 +46,13 @@ public class ExtractForm extends JFrame {
 		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
-		JLabel title = new JLabel(mode == 0?"Extract hidden data": "Watermark image");				
+		JLabel title = new JLabel(mode == 0? "Extract hidden data": "Watermark image");				
 		
 		JButton covBtn = new JButton("Select cover");
 		JLabel covTxt = new JLabel("<html><br/><br/></html>");		
 		JLabel covImg = new JLabel();
 		
-		JLabel pwdTxt = new JLabel(mode == 0?"Password:":"Insert mark:");
+		JLabel pwdTxt = new JLabel(mode == 0? "Password:": "Insert mark:");
 		JTextField pwdInput = new JTextField(); 
 		JButton confirmBtn = new JButton("Confirm"), confirmWatermarkBtn = new JButton("Confirm");	
 		
@@ -64,7 +66,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridy = 0;	
 		gbc.gridwidth = 1;
 		gbc.anchor = GridBagConstraints.PAGE_START;
-		title.setFont(font.deriveFont(Font.BOLD, 22*scale));
+		title.setFont(font.deriveFont(22*scale));
 		panel.add(title, gbc);		
 		
 		// cover button	
@@ -78,7 +80,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 2;	
 		gbc.anchor = GridBagConstraints.PAGE_START;
-		covTxt.setFont(font.deriveFont(Font.BOLD, 15*scale));
+		covTxt.setFont(font.deriveFont(15*scale));
 		panel.add(covTxt, gbc);
 		
 		// cover image repres.	
@@ -98,7 +100,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;
 		gbc.anchor = GridBagConstraints.NORTHWEST;
-		pwdTxt.setFont(font.deriveFont(Font.BOLD, 17*scale));
+		pwdTxt.setFont(font.deriveFont(17*scale));
 		panel.add(pwdTxt, gbc);
 		
 		// password text field
@@ -109,18 +111,19 @@ public class ExtractForm extends JFrame {
 		pwdInput.setFont(font);
 		panel.add(pwdInput, gbc);
 		
-		// confirm button for "extract" window and "watermark"
+		// confirm button for "Extract" window and "Watermark"
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.EAST;	
 		if(mode == 0){	
-			confirmBtn.setFont(font.deriveFont(Font.BOLD, 15*scale));	
+			confirmBtn.setFont(font.deriveFont(15*scale));	
 			panel.add(confirmBtn, gbc);
 		}
 		else {
-			confirmWatermarkBtn.setFont(font.deriveFont(Font.BOLD, 15*scale));	
+			confirmWatermarkBtn.setFont(font.deriveFont(15*scale));	
 			panel.add(confirmWatermarkBtn, gbc);
 		}
+		
 		covBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
@@ -238,7 +241,45 @@ public class ExtractForm extends JFrame {
 				}				
 			}
 		});
-		
+		confirmWatermarkBtn.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{	
+				JFileChooser fc = new JFileChooser();
+				String key = pwdInput.getText();	 
+				
+				if(covFileName == null)
+				{
+					Menu.infoBox("Please select a cover image.");
+					return;
+				}
+				
+				if(key.length() < 3)
+				{
+					Menu.infoBox("Marks can't be shorter than 3 characters.");
+					return;
+				}	
+				
+				Mat cov = Highgui.imread(covFileName);
+				cov = Watermark.hideDCT(cov, key);
+				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
+				{	
+					key = fc.getSelectedFile().toString();  // if no extension or an unsupported one is provided, assign .png						
+					if(!Menu.checkFileExtension(key, ".png.bmp"))
+						key += ".png";	
+					
+					Highgui.imwrite(key, cov);	
+					Menu.infoBox("Image watermarked succesfully!");
+					
+					try{
+						Desktop dt = Desktop.getDesktop();	// compare original cover with embedded cover 		
+						dt.open(new File(covFileName));
+						dt.open(new File(key));
+					}
+					catch(IOException ex){  }
+				}
+			}
+		});
 		addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
             	Menu.owner.toFront();

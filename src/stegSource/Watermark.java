@@ -3,13 +3,9 @@ package stegSource;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Scanner;
-
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfInt;
-import org.opencv.highgui.Highgui;
 
 public class Watermark {
 	 static float standardQuant[][] = {
@@ -42,8 +38,8 @@ public class Watermark {
 		   else return false;
 	 }
 	 
-	public static Mat hideDCT(Mat cov, String text)	
-	   {		   
+	public static Mat hideDCT(Mat cov, String text)
+	{		   
 		   int i, j, q, p, ct = 0;
 		   byte bit;
 		   double[] coef = new double[1];
@@ -110,8 +106,8 @@ public class Watermark {
 			  Core.merge(spl, cov);
 			  return cov;			  
 	   }
-	public static String extDCT(Mat cov)	
-	   {	
+	public static String extDCT(Mat cov)
+	{	
 		   int i, j, q, p, ct = 0;  
 		   double coef;
 		   BitSet msg = new BitSet();
@@ -149,4 +145,34 @@ public class Watermark {
 			   }   
 		   return new String(msg.toByteArray());
 	   }
+	public static String getStatistics(String extr)
+	{  
+		   int i, crt, len = extr.length();
+		   int[] freq = new int[256];
+		   double prob, total = 0;
+		   String formated = "TOTAL CHARACTERS EXTRACTED: "+len+"\n\n";
+		   
+		/*   for(i = 1;i<=extr.length()/100;i++)
+			   	System.out.println(i+" "+ p.substring(100*(i-1), 100*i));
+		   System.out.println(i+" "+ p.substring(100*(i-1), 100*(i-1)+ p.length()-100*(i-1)));
+		*/
+		   for(i = 0;i<len;i++)			// create array of char frequency
+		   {
+			   crt = (int)extr.charAt(i);
+			   if(crt >= 0 && crt <= 255)
+				   freq[crt]++;
+		   }
+		   
+		   for(i = 0;i<=255;i++)
+		   {	
+			   prob = freq[i]*1.0 / len;	// a unmarked image has lots of random values, 
+			   if(prob > 0.01)				// none can pass 0.01 in frequency if not watermarked
+			   {
+				  formated = String.format("%sPROB: %.3f, FREQUENCY: %d, DEC: %d, ASCII: %c\n",formated, prob, freq[i], i, i); 
+				  total += freq[i];
+			   }
+		   }
+		   formated = String.format("%s\nTOTAL WATERMARK PROBABILITY: : %.3f %%\n", formated, total/len*100);
+		   return formated;
+	}
 }

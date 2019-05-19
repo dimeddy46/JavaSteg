@@ -2,32 +2,13 @@ package stegSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Random;
-import java.util.Scanner;
-
-import javax.imageio.ImageIO;
-
-import java.util.List;
-import java.awt.Image;
-import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.core.MatOfInt;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
 import org.opencv.core.Core;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
-
 
 public class OpenCV {
 
@@ -625,7 +606,7 @@ public class OpenCV {
 
   public static void main(String[] args) throws Exception
    {	
-	     Mat msg, cov = Highgui.imread("Samples/house.bmp"), 
+	  /*	     Mat msg, cov = Highgui.imread("Samples/house.bmp"), 
 			   ster = Highgui.imread("Samples/bridge.png");
 	   String key1 = "COPY", msg1 = "12345";
 	   StringBuilder val = new StringBuilder("hest"); 
@@ -636,47 +617,9 @@ public class OpenCV {
 	   byte[] bit = {1,2,4,8,16,32,64,-128};
 	   int ct = 0, write = 0,i, pnm;
 	   
-	   String mp = new String(readFile("Samples/text1.txt"));
-	   String img = "Samples/road", ext = ".png";
-	   System.out.println(mp.length());
+	   String img = "Samples/road", ext = ".png"; 
 	   
-	   hideImgText(cov, mp,"12345");
-
-	/*   if(write == 1)
-	   {
-		   Mat orig = Highgui.imread(img+ext);   
-		   Watermark.hideDCT(orig, key1);
-		   Highgui.imwrite(img+"1"+ext, orig);
-	   }
-	   msg = Highgui.imread(img+"1"+ext);
-	   
-	   String p = Watermark.extDCT(msg);	  
-	   for(i = 1;i<=p.length()/100;i++)
-		   	System.out.println(i+" "+ p.substring(100*(i-1), 100*i));
-	   System.out.println(i+" "+ p.substring(100*(i-1), 100*(i-1)+ p.length()-100*(i-1)));
-	  
-	   for(i = 0;i<p.length();i++)
-	   {
-		   pnm = (int)p.charAt(i);
-		   if(pnm >= 0 && pnm <= 255)
-			   freq[pnm]++;
-	   }
-	   
-	   double pz;
-	   int leng = p.length();
-	   System.out.println(leng);
-	   double sum = 0;
-	   for(i = 0;i<=255;i++)
-	   {	
-		   pz = freq[i]*1.0 / leng;
-		   if(pz > 0.01){
-			  System.out.printf("PROB: %.4f FREQUENCY: %d | (DEC) %d (ASCII) %c\n",pz, freq[i], i, i);
-			  sum += freq[i];
-		   }
-	   }
-	   System.out.printf("TOTAL: %.4f\n", sum / leng);
-	   
-	/*
+	
 	   BufferedImage orig = ImageIO.read(new File("D:\\Downloads\\Java\\StegOpenCV\\test15.jpg"));	   
 	   FileOutputStream out = new FileOutputStream("D:\\Downloads\\Java\\StegOpenCV\\test16.jpg");
 	   JpegEncoder x = new JpegEncoder(orig,90,out);
