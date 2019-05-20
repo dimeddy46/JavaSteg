@@ -234,13 +234,10 @@ public class HideForm extends JFrame {
 		covBtn.addActionListener(new ActionListener() 
 		{	
 			public void actionPerformed(ActionEvent e) 
-			{	
-				JFileChooser fc = new JFileChooser();
-				
+			{					
 				// set previously chosen dir
-				if(Menu.defDir != null)
-					fc.setCurrentDirectory(new File(Menu.defDir));
-				
+				JFileChooser fc = new JFileChooser();
+				fc.setCurrentDirectory(new File(Menu.defDir));				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
 					BufferedImage img = null;
@@ -255,7 +252,7 @@ public class HideForm extends JFrame {
 					}					
 					try {
 						img = ImageIO.read(selectedFile);						
-						imgBytes = img.getHeight() * img.getWidth() * 3;
+						imgBytes = mode == 0?(img.getHeight() * img.getWidth() * 3): (int)selectedFile.length();
 						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 						covImg.setIcon(icon);						
 					}
@@ -292,9 +289,7 @@ public class HideForm extends JFrame {
 			public void actionPerformed(ActionEvent e)
 			{
 				JFileChooser fc = new JFileChooser();					
-				if(Menu.defDir != null)
-					fc.setCurrentDirectory(new File(Menu.defDir));
-				
+				fc.setCurrentDirectory(new File(Menu.defDir));				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
 					BufferedImage img = null;
@@ -308,7 +303,8 @@ public class HideForm extends JFrame {
 						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 						msgImg.setIcon(icon);
 						
-						hideModeCombo.setSelectedIndex(0);
+						if(hideModeCombo.getSelectedIndex() != 2)
+							hideModeCombo.setSelectedIndex(0);
 					}
 					catch (NullPointerException ex) 
 					{	
@@ -430,6 +426,7 @@ public class HideForm extends JFrame {
 						key += ".png";	
 					Highgui.imwrite(key, rez);	
 					Menu.infoBox("Image hidden succesfully!");
+					Menu.defDir = fc.getCurrentDirectory().toString();
 					
 					try{
 						Desktop dt = Desktop.getDesktop();	// compare original cover with embedded cover 					
@@ -440,6 +437,7 @@ public class HideForm extends JFrame {
 				}
 			}
 		});
+		
 		confirmWatermarkBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e)

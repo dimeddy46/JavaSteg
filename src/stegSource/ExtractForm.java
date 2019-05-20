@@ -132,9 +132,7 @@ public class ExtractForm extends JFrame {
 			public void actionPerformed(ActionEvent e) 
 			{	
 				JFileChooser fc = new JFileChooser();						
-				if(Menu.defDir != null)
-					fc.setCurrentDirectory(new File(Menu.defDir));
-				
+				fc.setCurrentDirectory(new File(Menu.defDir));				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
 					BufferedImage img = null;				
@@ -177,8 +175,6 @@ public class ExtractForm extends JFrame {
 		{
 			public void actionPerformed(ActionEvent e) 
 			{	
-				
-				JFileChooser fc = new JFileChooser();
 				String key = pwdInput.getText(), fileName, type;	 
 				byte[] msgByte = null;
 				byte found = -1;
@@ -196,6 +192,7 @@ public class ExtractForm extends JFrame {
 				}	
 				
 				Mat cov = Highgui.imread(covFileName), msgMat;
+				
 				
 				if((msgMat = OpenCV.extImgHecht(cov, key)).cols() != 1) 
 				{
@@ -224,6 +221,9 @@ public class ExtractForm extends JFrame {
 				}
 				
 				Menu.infoBox("A hidden "+type.toUpperCase()+" has been found. Please select a save location.");	
+				
+				JFileChooser fc = new JFileChooser();
+				fc.setCurrentDirectory(new File(Menu.defDir));
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 				{							 				
 					 fileName = fc.getSelectedFile().toString();
@@ -235,25 +235,24 @@ public class ExtractForm extends JFrame {
 						 Highgui.imwrite(fileName, msgMat);
 					 }
 					 else  {
-						 if(found == 1)         // found text message	
-						 { 		
+						 if(found == 1){         // found text message							 		
 							 if(!Menu.checkFileExtension(fileName,".txt"))
 								 fileName += ".txt";
 						 }
 						 else  		    		// found lossless file type(All Files)					
-							 fileName = fc.getSelectedFile().toString()+type;
-
+							 fileName = fc.getSelectedFile().toString()+type;						
 						 OpenCV.writeFile(fileName, msgByte);
 					 }
+					 Menu.defDir = fc.getCurrentDirectory().toString();
 				}				
 			}
 		});
+		
 		confirmWatermarkBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
-			{	
-				JFileChooser fc = new JFileChooser();
-				String key = pwdInput.getText();	 
+			{				
+				String key = pwdInput.getText();	
 				
 				if(covFileName == null)
 				{
@@ -269,6 +268,9 @@ public class ExtractForm extends JFrame {
 				
 				Mat cov = Highgui.imread(covFileName);
 				cov = Watermark.hideDCT(cov, key);
+				
+				JFileChooser fc = new JFileChooser();
+				fc.setCurrentDirectory(new File(Menu.defDir));
 				if(fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
 					key = fc.getSelectedFile().toString();  // if no extension or an unsupported one is provided, assign .png						
@@ -277,6 +279,7 @@ public class ExtractForm extends JFrame {
 					
 					Highgui.imwrite(key, cov);	
 					Menu.infoBox("Image watermarked succesfully!");
+					Menu.defDir = fc.getCurrentDirectory().toString();
 					
 					try{
 						Desktop dt = Desktop.getDesktop();	// compare original cover with embedded cover 		
@@ -284,6 +287,7 @@ public class ExtractForm extends JFrame {
 						dt.open(new File(key));
 					}
 					catch(IOException ex){  }
+					
 				}
 			}
 		});

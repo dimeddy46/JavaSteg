@@ -8,7 +8,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 public class Watermark {
-	 static float standardQuant[][] = {
+	 private static float standardQuant[][] = {
 			{16, 11, 10, 16, 24, 40, 51, 61},
 			{12, 12, 14, 19, 26, 58, 60, 55},
 			{14, 13, 16, 24, 40, 57, 69, 56},
@@ -17,7 +17,8 @@ public class Watermark {
 			{24, 35, 55, 64, 81, 104, 113, 92},
 			{49, 64, 78, 87, 103, 121, 120, 101},
 			{72, 92, 95, 98, 112, 100, 103, 99}
-	};	 
+	 };	 
+	 
 	 private static boolean safeGuard(double[] coef)
 	 {
 		   double safe;
@@ -78,7 +79,7 @@ public class Watermark {
 						   // get coefs != 1 and 0
 						   if((coef[0] <= -1 || coef[0] >= 1) && full == false && p + q != 0 )//&& ct/8 != msg.length) 
 						   {
-							   // get 1 bit from current letter and repeat until all blocks exahausted
+							   // get 1 bit from current letter and repeat until all quantized DCT blocks get exahausted
 							   bit = (byte) ((msg[ct / 8 % msg.length] >> ct % 8) & 1); 
 							   
 							   // to write 0 -> coef must be negative, 1 -> positive
@@ -89,7 +90,7 @@ public class Watermark {
 							   else {
 								   if(coef[0] < 0)
 									   coef[0] = -coef[0];
-							   }						   						   
+							   }				   						   
 							   sub.put(q, p, coef[0]);
 							   
 							   // modify only first 3 coefs from each block and don't skip to end of block
@@ -102,10 +103,10 @@ public class Watermark {
 				   Core.multiply(sub, quant, sub);	// restore from quantised DCT values to DCT
 				   Core.idct(sub, sub);				// convert back to spatial domain	    
 			   }
-		   System.out.println("written"+ct/8);
-			  Core.merge(spl, cov);
-			  return cov;			  
-	   }
+		   Core.merge(spl, cov);
+		   return cov;			  
+	}
+	
 	public static String extDCT(Mat cov)
 	{	
 		   int i, j, q, p, ct = 0;  
@@ -144,7 +145,8 @@ public class Watermark {
 					    }
 			   }   
 		   return new String(msg.toByteArray());
-	   }
+	}
+	
 	public static String getStatistics(String extr)
 	{  
 		   int i, crt, len = extr.length();
@@ -168,11 +170,14 @@ public class Watermark {
 			   prob = freq[i]*1.0 / len;	// a unmarked image has lots of random values, 
 			   if(prob > 0.01)				// none can pass 0.01 in frequency if not watermarked
 			   {
-				  formated = String.format("%sPROB: %.3f, FREQUENCY: %d, DEC: %d, ASC: %c\n",formated, prob, freq[i], i, i); 
+				  formated = String.format("%sPROB: %.3f, FREQUENCY: %d, DEC: %d, ASC: %c\n", formated, prob, freq[i], i, i); 
 				  total += freq[i];
 			   }
 		   }
-		   formated = String.format("%s\nTOTAL WATERMARK PROBABILITY: : %.3f%%\n", formated, total/len*100);
+		   formated = String.format("%s\n****************************************\n"
+		   							  + "TOTAL WATERMARK PROBABILITY: : %.3f%%"
+		   						    + "\n****************************************", 
+		   						    formated, total/len*100);
 		   return formated;
 	}
 }
