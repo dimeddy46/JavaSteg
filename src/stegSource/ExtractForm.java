@@ -1,5 +1,8 @@
 package stegSource;
 
+//------------------------------- ExtractForm(0) => EXTRACT STEGANOGRAPHIED DATA -------------------------
+//------------------------------- ExtractForm(1) => ADD WATERMARK TO IMAGE -------------------------------
+
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -154,7 +157,11 @@ public class ExtractForm extends JFrame {
 							icon.getImage().flush(); 
 							icon = null;
 						}
-						img = null;
+						if(img != null)
+						{
+							img.flush();
+							img = null;
+						}
 						Menu.defDir = fc.getCurrentDirectory().toString();
 					}
 					

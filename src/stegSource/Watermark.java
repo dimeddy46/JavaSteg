@@ -168,11 +168,11 @@ public class Watermark {
 			   prob = freq[i]*1.0 / len;	// a unmarked image has lots of random values, 
 			   if(prob > 0.01)				// none can pass 0.01 in frequency if not watermarked
 			   {
-				  formated = String.format("%sPROB: %.3f, FREQUENCY: %d, DEC: %d, ASCII: %c\n",formated, prob, freq[i], i, i); 
+				  formated = String.format("%sPROB: %.3f, FREQUENCY: %d, DEC: %d, ASC: %c\n",formated, prob, freq[i], i, i); 
 				  total += freq[i];
 			   }
 		   }
-		   formated = String.format("%s\nTOTAL WATERMARK PROBABILITY: : %.3f %%\n", formated, total/len*100);
+		   formated = String.format("%s\nTOTAL WATERMARK PROBABILITY: : %.3f%%\n", formated, total/len*100);
 		   return formated;
 	}
 }

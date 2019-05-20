@@ -1,5 +1,8 @@
 package stegSource;
 
+//------------------------------- HideForm(0) => EMBED DATA IN IMAGES ----------------------------
+//------------------------------- HideForm(1) => CHECK IMAGE WATERMARK ---------------------------
+
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -240,7 +243,7 @@ public class HideForm extends JFrame {
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
-					BufferedImage img;
+					BufferedImage img = null;
 					ImageIcon icon = null;
 					int imgBytes = 0;					
 					File selectedFile = fc.getSelectedFile();
@@ -268,7 +271,11 @@ public class HideForm extends JFrame {
 							icon.getImage().flush(); 
 							icon = null;
 						}
-						img = null;
+						if(img != null)
+						{
+							img.flush();
+							img = null;
+						}
 						Menu.defDir = fc.getCurrentDirectory().toString();
 					}
 					
@@ -290,7 +297,7 @@ public class HideForm extends JFrame {
 				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
-					BufferedImage img;
+					BufferedImage img = null;
 					ImageIcon icon = null;
 					int imgBytes = 0;
 					File selectedFile = fc.getSelectedFile();
@@ -333,12 +340,16 @@ public class HideForm extends JFrame {
 							icon.getImage().flush(); 
 							icon = null;
 						}
-						img = null;
+						if(img != null)
+						{
+							img.flush();
+							img = null;
+						}
 						Menu.defDir = fc.getCurrentDirectory().toString();
 					}
 
 					msgTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
-								   "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");						
+								   "</font><br>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");						
 					msgFileName = selectedFile.toString();	
 					memoMsgStr = msgTxt.getText();					
 				}
@@ -438,7 +449,35 @@ public class HideForm extends JFrame {
 					Menu.infoBox("Please select a cover image.");
 					return;
 				}
-				
+				BufferedImage img = null;
+				ImageIcon icon = null;
+				try {						
+					img = ImageIO.read(new File(covFileName));
+					icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+					covImg.setIcon(icon);
+				}
+				catch(Exception ex)
+				{					
+					icon = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));	
+					covImg.setIcon(icon);
+					covTxt.setText("<html><br/><br/></html>");
+					Menu.infoBox("The selected file is not available anymore.");
+					return;
+				}
+				finally
+				{
+					
+					if(icon != null)
+					{
+						icon.getImage().flush(); 
+						icon = null;
+					}
+					if(img != null)
+					{
+						img.flush();
+						img = null;
+					}
+				}
 				Mat cov = Highgui.imread(covFileName);
 				String rez = Watermark.extDCT(cov); 
 				rez = Watermark.getStatistics(rez);
