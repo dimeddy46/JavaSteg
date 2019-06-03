@@ -245,9 +245,9 @@ public class HideForm extends JFrame {
 					int imgBytes = 0;					
 					File selectedFile = fc.getSelectedFile();
 					
-					if(!Menu.checkFileExtension(selectedFile.toString(), ".png.bmp"))
+					if(!Menu.checkFileExtension(selectedFile.toString(), ".jpg.jpeg.png.bmp"))
 					{
-						Menu.infoBox("Please select a .PNG or .BMP as your cover.");
+						Menu.infoBox("Please select a image as your cover.");
 						return;
 					}					
 					try {
@@ -463,8 +463,7 @@ public class HideForm extends JFrame {
 					return;
 				}
 				finally
-				{
-					
+				{					
 					if(icon != null)
 					{
 						icon.getImage().flush(); 

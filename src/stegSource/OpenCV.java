@@ -2,6 +2,8 @@ package stegSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Random;
 import java.io.File;
 import org.opencv.core.CvType;
@@ -90,42 +92,9 @@ public class OpenCV {
 	   return key;
    }
    
-   static void criptDecriptMat(Mat src, StringBuilder key)
+   static void encDecInfo(byte[] info, StringBuilder key, int len)
    {
- 	  byte v1, k = (byte)(key.length() -1);
- 	  byte[] pixel = new byte[3];
- 	  int val, par = 1;
- 	   
- 	  for(short i = 0; i< src.rows();i++)
- 	  {
- 		  for(short j = 0; j< src.cols();j++)
- 		  {			 
- 			  par *= -3;
- 			  src.get(i,j,pixel);			 
- 			  for(v1 = 0;v1 < 3;v1++)
- 			  {	 
- 				  val = key.toString().hashCode() * par;
- 				  
- 				  while(val != 0 && val != -1)
- 				  {
- 					  pixel[v1] ^= val;
- 					  val >>= 8;
- 				  }
- 				  key.setCharAt(k, (char)(key.charAt(k) + 1));
- 				  if(key.charAt(k) == 127)
- 				  {
- 					  key.setCharAt(k, '!');
- 					  chain(key,k);
- 				  }
- 			  }
- 			  src.put(i, j, pixel);
- 		  }
- 	  }
-   }
-   
-   static void criptDecriptInfo(byte[] info, StringBuilder key, int len)
-   {
-	   byte k = (byte)(key.length() - 1);
+	   byte keyLen = (byte)(key.length() - 1);
 	   int val;
 	   
 	   for(int i = 0;i < len;i++)
@@ -136,15 +105,49 @@ public class OpenCV {
 			   info[i] ^= (byte)val;
 			   val >>= 8;
 		   }		   		  
-		   key.setCharAt(0, (char)(key.charAt(0) + 1)); // key[k]++;
+		   key.setCharAt(0, (char)(key.charAt(0) + 1)); // key[0]++;
 		   if(key.charAt(0) == 126)
 		   {
 			   key.setCharAt(0,'!');
-			   chain(key, k);
+			   chain(key, keyLen);
 		   }
 	   } 
    }
-
+   
+   static void encDecMat(Mat src, StringBuilder key)
+   {
+ 	  byte it, keyLen = (byte)(key.length() -1);
+ 	  byte[] pixel = new byte[3];
+ 	  int val, par = 1;
+ 	  short i,j;
+ 	  
+ 	  for(i = 0; i< src.rows();i++)
+ 	  {
+ 		  for(j = 0; j< src.cols();j++)
+ 		  {			 			  
+ 			  src.get(i,j,pixel);			 
+ 			  for(it = 0;it < 3;it++)
+ 			  {	 
+ 				  par *= -3;
+ 				  val = key.toString().hashCode() * par;
+ 				  
+ 				  while(val != -1 && val != 0)
+ 				  {
+ 					  pixel[it] ^= val;
+ 					  val >>= 8;
+ 				  }
+ 				  key.setCharAt(0, (char)(key.charAt(0) + 1));
+ 				  if(key.charAt(0) == 126)
+ 				  {
+ 					  key.setCharAt(0, '!');
+ 					  chain(key,keyLen);
+ 				  }
+ 			  }
+ 			  src.put(i, j, pixel);
+ 		  }
+ 	  }
+   }
+   
 //----------------------------------------------------------------------------------- 
 // ---------------------------------- TEXT STEG -------------------------------------
 //-----------------------------------------------------------------------------------
@@ -178,7 +181,7 @@ public class OpenCV {
 		   for(byte i = 0;i < lenInit;i++)
 			   verify[i] = (byte)msg.charAt(i);
 		   
-		 criptDecriptInfo(verify, keyBuild, lenInit);
+		 encDecInfo(verify, keyBuild, lenInit);
 		 if(new String(verify).equals(init))
 			 return bt;
 		 
@@ -211,7 +214,7 @@ public class OpenCV {
 	   if(bt > 3)								// at more than 3 LSB changed, the cover gets too much noise
 		   return Mat.zeros(1, 1, CvType.CV_8U);
 	   
-	   criptDecriptInfo(encrypt, keyBuild, len);
+	   encDecInfo(encrypt, keyBuild, len);
 	   for(byte ind : encrypt)	   
 		  repBin = repBin.concat(toBin(ind, 8));
 
@@ -265,7 +268,7 @@ public class OpenCV {
 						if(countLit == 10)
 						{
 							countLit = 0;
-							criptDecriptInfo(decrypt, keyBuild, 10);
+							encDecInfo(decrypt, keyBuild, 10);
 							hold = new String(decrypt); 
 							hold = hold.replace("\\st", "000");
 							msg += hold;
@@ -288,7 +291,7 @@ public class OpenCV {
 	   byte[] values = new byte[8];	 
 	   
 	   for(byte i = 0;i < 4;i+=2)				// convert resolution from short to byte to correspond with
-	   {										// criptDecriptInfo parameter(can't use generics to do arithmetic ops)
+	   {										// encDecInfo parameter(can't use generics to do arithmetic ops)
 		   values[i] = (byte)rez[i/2];		   
 		   values[i+1] = (byte)(rez[i/2] >> 8);
 	   }
@@ -368,7 +371,7 @@ public class OpenCV {
 		   values[k] = retn[1];
 		   retn[0] = retn[1] = 0;
 	   }	   
-	   criptDecriptInfo(values, keyBuild, 8);
+	   encDecInfo(values, keyBuild, 8);
 	   
 	   for(k = 4; k < 8; k++)						// verify if initialiser is correct
 		   if(values[k] != init.charAt(k-4))		
@@ -397,7 +400,7 @@ public class OpenCV {
 	   for(i = 4;i < 8;i++)			// concatenate resolution and initialiser 
 		   msgVal[i] = (byte) init.charAt(i-4);
 	   
-	   criptDecriptInfo(msgVal, keyBuild, 8);
+	   encDecInfo(msgVal, keyBuild, 8);
 	   i = j = 0;				
 	   for(k = 0;k < 8;k++)	// write resolution and identifier on least significant bit of cov first line
 	   {
@@ -409,8 +412,8 @@ public class OpenCV {
 		   }
 		   j = 0;
 	   }
-	   criptDecriptMat(msg,keyBuild);
-	   
+	   encDecMat(msg, keyBuild);
+	   Highgui.imwrite("cript1.png",msg);
 	   y = 1; x = 0;
 	   msgVal = new byte[3];
 	   for(i = 0;i < msg.rows(); i++)			// each msg byte is written on the cover's LSB using from:
@@ -457,7 +460,7 @@ public class OpenCV {
 				   if(x == fin.cols()){ y++; x = 0; }	
 			   }			   
 		   }
-	   criptDecriptMat(fin,keyBuild);
+	   encDecMat(fin,keyBuild);
 	   return fin;
    }
    
@@ -487,7 +490,7 @@ public class OpenCV {
 	    	for(k = 0;k<3 && i != len;k++)
 	    		values[i++] += (char)(pixel[k] & 0xFF);
 	    }
-	    criptDecriptInfo(values, keyBuild, len);
+	    encDecInfo(values, keyBuild, len);
 	    return new String(values);
    }
 
@@ -504,7 +507,7 @@ public class OpenCV {
 		   for(k = 0; k < 3; k++)				   
 			   values[i++] = (byte)rez[k];		   
 	   }	
-	   criptDecriptInfo(values, keyBuild, 9);		// decrypt res + init
+	   encDecInfo(values, keyBuild, 9);		// decrypt res + init
 	   
 	   for(i = 4;i < 8;i++)							// verify if one initialiser is correct						
 		   if((values[i] != init.charAt(i-4)))		
@@ -543,8 +546,8 @@ public class OpenCV {
 	   while(i != init.length()+4)			// i = 4, copying to [values] the fileLength and initialiser 
 		   values[i] = (byte)init.charAt(i++-4);
 		 
-	   criptDecriptInfo(values, keyBuild, init.length()+4);		// encrypt length, initialiser and file
-	   criptDecriptInfo(file, keyBuild, file.length);  
+	   encDecInfo(values, keyBuild, init.length()+4);		// encrypt length, initialiser and file
+	   encDecInfo(file, keyBuild, file.length);  
 
 	   i = 0; j = 0;
 	   while(i < init.length()+4)		// write fileLength, initialiser, extLength, extension
@@ -595,7 +598,7 @@ public class OpenCV {
 			   fileContents[total[0]++] = (byte)(pixel[k] & 0xFF); 
 		   if(++j == cov.cols()){ j = 0;i++; }
 	   }	   
-	   criptDecriptInfo(fileContents, keyBuild, total[0]);
+	   encDecInfo(fileContents, keyBuild, total[0]);
 	   
 	   return fileContents;	   
    }
@@ -606,8 +609,21 @@ public class OpenCV {
 
   public static void main(String[] args) throws Exception
    {	
-	  /*	     Mat msg, cov = Highgui.imread("Samples/house.bmp"), 
-			   ster = Highgui.imread("Samples/bridge.png");
+	  StringBuilder key = new StringBuilder("mere");
+	  byte[] pm = "sugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesuge".getBytes();
+	  encDecInfo(pm,key,pm.length);
+	  byte[] freq = new byte[256];
+	  for(int i = 0;i<pm.length;i++)
+		  freq[pm[i]+128]++;
+	  int c = 0;
+	  for(int i = 0;i<256;i++)
+		  if(freq[i] != 0){
+			  System.out.println(i+" "+freq[i]);
+			  c++;
+		  }
+	  System.out.println(pm.length+" Diferite de 0: "+c);
+	  /* Mat msg, cov = Highgui.imread("Samples/house.bmp"), 
+		ster = Highgui.imread("Samples/bridge.png");
 	   String key1 = "COPY", msg1 = "12345";
 	   StringBuilder val = new StringBuilder("hest"); 
 	   byte bt = 1, y;	   
@@ -635,7 +651,7 @@ public class OpenCV {
 		   System.out.println(c+" "+zx+" "+(char)zx);
 		   c++;
 	   }
-	 //  criptDecriptInfo(info,val, mere.length());
+	 //  encDecInfo(info,val, mere.length());
 	   x.JpegObj.Comment = new String(info)+"  ";
 	   System.out.println("In main"+x.JpegObj.getComment());
 	   x.Compress();

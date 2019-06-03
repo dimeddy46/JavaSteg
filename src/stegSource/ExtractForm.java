@@ -228,20 +228,21 @@ public class ExtractForm extends JFrame {
 				{							 				
 					 fileName = fc.getSelectedFile().toString();
 					 
-					 if(found == 0){      		// found Hecht image hidden inside cover 
+					 if(found == 0){      	   // found Hecht image hidden inside cover 
 						 
 						 if(!Menu.checkFileExtension(fileName,".png.bmp.jpg"))
 							 fileName += ".png";							 
 						 Highgui.imwrite(fileName, msgMat);
 					 }
 					 else  {
-						 if(found == 1){         // found text message							 		
+						 if(found == 1){        // found text message							 		
 							 if(!Menu.checkFileExtension(fileName,".txt"))
 								 fileName += ".txt";
 						 }
 						 else  		    		// found lossless file type(All Files)					
 							 fileName = fc.getSelectedFile().toString()+type;						
 						 OpenCV.writeFile(fileName, msgByte);
+						 Menu.infoBox(type.toUpperCase()+" file extracted succesfully!");
 					 }
 					 Menu.defDir = fc.getCurrentDirectory().toString();
 				}				
