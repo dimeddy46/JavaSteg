@@ -1,7 +1,6 @@
 package stegSource;
 
-//------------------------------- ExtractForm(0) => EXTRACT STEGANOGRAPHIED DATA -------------------------
-//------------------------------- ExtractForm(1) => ADD WATERMARK TO IMAGE -------------------------------
+
 
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -34,6 +33,8 @@ import java.util.Arrays;
 public class ExtractForm extends JFrame {	
 	String covFileName;	
 	
+	//------------------------------- ExtractForm(0) => EXTRACT STEGANOGRAPHIED DATA -------------------------
+	//------------------------------- ExtractForm(1) => ADD WATERMARK TO IMAGE -------------------------------	
 	ExtractForm(int mode) 
 	{			
 		Menu m = new Menu();
@@ -49,7 +50,7 @@ public class ExtractForm extends JFrame {
 		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
-		JLabel title = new JLabel(mode == 0? "Extract hidden data": "Watermark image");				
+		JLabel title = new JLabel(mode == 0? "Extract hidden data": "Watermark images");				
 		
 		JButton covBtn = new JButton("Select cover");
 		JLabel covTxt = new JLabel("<html><br/><br/></html>");		
@@ -86,9 +87,8 @@ public class ExtractForm extends JFrame {
 		covTxt.setFont(font.deriveFont(15*scale));
 		panel.add(covTxt, gbc);
 		
-		// cover image repres.	
-		
 		gbc.weighty = 20;	
+		// cover image repres.			
 		gbc.gridx = 0;
 		gbc.gridy = 3;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
@@ -261,11 +261,17 @@ public class ExtractForm extends JFrame {
 					return;
 				}
 				
-				if(key.length() < 3)
+				if(key.contains("\\"))
 				{
-					Menu.infoBox("Marks can't be shorter than 3 characters.");
+					key.replace("\\", "");
+					Menu.infoBox("All '\' characters have been replaced.");
+				}
+				
+				if(key.length() < 2 || key.length() > 20)
+				{
+					Menu.infoBox("Please choose another marking string.");
 					return;
-				}	
+				}
 				
 				Mat cov = Highgui.imread(covFileName);
 				cov = Watermark.hideDCT(cov, key);

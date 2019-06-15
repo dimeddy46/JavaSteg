@@ -1,7 +1,6 @@
 package stegSource;
 
-//------------------------------- HideForm(0) => EMBED DATA IN IMAGES ----------------------------
-//------------------------------- HideForm(1) => CHECK IMAGE WATERMARK ---------------------------
+
 
 import java.awt.Color;
 import java.awt.Desktop;
@@ -19,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -39,8 +39,9 @@ import org.opencv.highgui.Highgui;
 public class HideForm extends JFrame {
 	String covFileName, msgFileName, memoMsgStr = "";
 	
-	
-	HideForm(int mode) 
+	//------------------------------- HideForm(0) => EMBED DATA IN IMAGES ----------------------------
+	//------------------------------- HideForm(1) => CHECK IMAGE WATERMARK ---------------------------	
+	HideForm(int mode) 	
 	{		
 		Menu m = new Menu();
 		int[] imgSize = m.getXY();
@@ -55,7 +56,7 @@ public class HideForm extends JFrame {
 		
 		JPanel panel = new JPanel(new GridBagLayout());
 		getContentPane().add(panel);
-		JLabel title = new JLabel(mode == 0?"Hide data" : "Verify watermaked images");
+		JLabel title = new JLabel(mode == 0?"Hide data" : "Verify watermarked images");
 				
 		JButton covBtn = new JButton("Select cover");
 		JButton msgBtn = new JButton("Select message");
@@ -70,7 +71,7 @@ public class HideForm extends JFrame {
 		
 		JComboBox<String> hideModeCombo = new JComboBox<>(new String[]{"Hecht(img)", "Text", "All files"});		
 		JTextField pwdInput = new JTextField(); 
-		JButton confirmBtn = new JButton("Confirm"), confirmWatermarkBtn = new JButton("Confirm | Update");
+		JButton confirmBtn = new JButton("Confirm"), confirmCheckWaterBtn = new JButton("Confirm | Update");
 		
 		JTextArea msgInput = new JTextArea();	// LSB TEXT MODE
 		
@@ -111,8 +112,8 @@ public class HideForm extends JFrame {
 		else {
 			gbc.gridx = 2;
 			gbc.gridy = 5;	
-			confirmWatermarkBtn.setFont(font);
-			panel.add(confirmWatermarkBtn,gbc);
+			confirmCheckWaterBtn.setFont(font);
+			panel.add(confirmCheckWaterBtn,gbc);
 		}
 
 		gbc.weighty = mode == 0? 0 : 1;
@@ -242,7 +243,7 @@ public class HideForm extends JFrame {
 				{	
 					BufferedImage img = null;
 					ImageIcon icon = null;
-					int imgBytes = 0;					
+					int canHide = 0, index;					
 					File selectedFile = fc.getSelectedFile();
 					
 					if(!Menu.checkFileExtension(selectedFile.toString(), ".jpg.jpeg.png.bmp"))
@@ -251,10 +252,25 @@ public class HideForm extends JFrame {
 						return;
 					}					
 					try {
-						img = ImageIO.read(selectedFile);						
-						imgBytes = mode == 0?(img.getHeight() * img.getWidth() * 3): (int)selectedFile.length();
+						img = ImageIO.read(selectedFile);	
 						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-						covImg.setIcon(icon);						
+						covImg.setIcon(icon);	
+						
+						if(mode == 0)
+						{
+							index = hideModeCombo.getSelectedIndex();
+							switch(index)
+							{
+								case 0:
+								case 2:
+									canHide = img.getHeight() * img.getWidth();
+									break;
+								case 1:
+									canHide = (img.getHeight() * img.getWidth() * 3) / 8;
+									break;
+							}
+						}
+						else canHide = (int)selectedFile.length();
 					}
 					catch (Exception ex) 
 					{
@@ -277,7 +293,7 @@ public class HideForm extends JFrame {
 					}
 					
 					covTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
-								  "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");						
+								  "</font><br/>Can hide: "+NumberFormat.getInstance().format(canHide)+" bytes</html>");						
 					covFileName = selectedFile.toString();					
 				}
 				System.gc();
@@ -364,13 +380,7 @@ public class HideForm extends JFrame {
 				// if a text file is selected and mode = LSB(text), overwrite the msgInput text
 				if(index == 1 && Menu.checkFileExtension(msgFileName, ".txt") )	
 					strMessage = new String(OpenCV.readFile(msgFileName));	
-				
-				if(strMessage.indexOf("\\") != -1)
-				{
-					Menu.infoBox("Character \\ is not permited. Please change your message.");
-					return;
-				}
-								
+
 				if(key.length() < 4)
 				{
 					Menu.infoBox("Passwords can't be shorter than 4 characters.");
@@ -383,6 +393,13 @@ public class HideForm extends JFrame {
 					Menu.infoBox("You must select both cover and message file.");
 					return;
 				}
+				
+				if(strMessage.contains("\\"))
+				{
+					strMessage.replace("\\", "");
+					Menu.infoBox("All '\' characters have been replaced.");
+				}		
+				
 				cov = Highgui.imread(covFileName);
 					
 				if(index == 0)
@@ -438,7 +455,7 @@ public class HideForm extends JFrame {
 			}
 		});
 		
-		confirmWatermarkBtn.addActionListener(new ActionListener() 
+		confirmCheckWaterBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e)
 			{			
@@ -447,12 +464,19 @@ public class HideForm extends JFrame {
 					Menu.infoBox("Please select a cover image.");
 					return;
 				}
+				
 				BufferedImage img = null;
 				ImageIcon icon = null;
+				File selectedFile = new File(covFileName);
+				int imgBytes, x, y;
+				
 				try {						
-					img = ImageIO.read(new File(covFileName));
+					img = ImageIO.read(selectedFile);		// update image representation and size
 					icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
 					covImg.setIcon(icon);
+					imgBytes = (int)selectedFile.length();
+					covTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
+							  "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");	
 				}
 				catch(Exception ex)
 				{					
@@ -464,7 +488,7 @@ public class HideForm extends JFrame {
 				}
 				finally
 				{					
-					if(icon != null)
+					if(icon != null)		// GC
 					{
 						icon.getImage().flush(); 
 						icon = null;
@@ -475,10 +499,25 @@ public class HideForm extends JFrame {
 						img = null;
 					}
 				}
+				
 				Mat cov = Highgui.imread(covFileName);
-				String rez = Watermark.extDCT(cov); 
-				rez = Watermark.getStatistics(rez);
-				msgInput.setText(rez);
+				String rez = "";
+				boolean found = false;
+				
+				for(x = 0;x<8;x++)
+					for(y = 0;y<8;y++)
+					{
+						rez = Watermark.extDCT(cov,x,y); 
+						rez = Watermark.getStatistics(rez);
+					//	System.out.println(x+" "+y+"\n"+rez);
+						if(Watermark.probability == 100)
+						{
+							x = 8; y = 8;
+						}
+					}		
+				msgInput.setText(Watermark.stats);
+				Watermark.stats = "";
+				Watermark.probability = -1;
 			}
 		});
 		addWindowListener(new WindowAdapter() {

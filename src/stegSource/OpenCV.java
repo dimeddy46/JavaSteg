@@ -286,6 +286,7 @@ public class OpenCV {
 // --------------------------------------------------------------------------------
 // --------------------------- HECHT STEGANOGRAPHY --------------------------------
 // --------------------------------------------------------------------------------
+   
    private static byte[] resToByte(short[] rez)
    {
 	   byte[] values = new byte[8];	 
@@ -588,7 +589,8 @@ public class OpenCV {
 
 	   i = 0; 
 	   j = 4 + total[1] / 3;
-	   if(total[1] % 3 == 0) j--;
+	   if(total[1] % 3 == 0) 
+		   j--;
 
 	   total[0] = 0;
 	   while(total[0] < fileContents.length)
@@ -602,15 +604,17 @@ public class OpenCV {
 	   
 	   return fileContents;	   
    }
-   
-   
-   
+      
    //---------------------------------------------------------
 
   public static void main(String[] args) throws Exception
    {	
-	  StringBuilder key = new StringBuilder("mere");
-	  byte[] pm = "sugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesugesuge".getBytes();
+	  Mat sub, cov = Highgui.imread("Samples/tiger.bmp");	
+	  Highgui.imwrite("test1.png", Watermark.hideDCT(cov, "COPY"));
+	  cov = Highgui.imread("test1.png");
+	  Watermark.hideDCT(cov, "COPY");
+	  /*StringBuilder key = new StringBuilder("mere");
+	  byte[] pm = "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest".getBytes();
 	  encDecInfo(pm,key,pm.length);
 	  byte[] freq = new byte[256];
 	  for(int i = 0;i<pm.length;i++)
