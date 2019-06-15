@@ -54,15 +54,13 @@ public class Watermark
 		   boolean full = false;
 		   Mat sub, quant = new Mat(8, 8, CvType.CV_32FC1);
 		   
-		   text = "\\*$"+text;		// delimiter for marker finding
 		   for (i = 0;i<8;i++)	// initialise quantizier
 			   quant.put(i,0, standardQuant[i]);
 		   
+		   text = "\\*$"+text;		// delimiter for marker finding		   
 		   char[] msg = new char[text.length()];	   
 		   text.getChars(0, text.length(), msg, 0);
-		   
-		//   Core.divide(quant, new Scalar(2), quant);
-		   System.out.println(quant.dump());
+
 		   List<Mat> spl = new ArrayList<Mat>();	   
 		   cov.convertTo(cov, CvType.CV_32FC3);
 		   Core.split(cov, spl);
@@ -127,7 +125,6 @@ public class Watermark
 		   for (i = 0;i<8;i++)	
 			   quant.put(i,0, standardQuant[i]);
 		   
-	//	   Core.divide(quant, new Scalar(2), quant);
 		   List<Mat> spl = new ArrayList<Mat>();	   
 		   cov.convertTo(cov, CvType.CV_32FC3);
 		   Core.split(cov, spl);

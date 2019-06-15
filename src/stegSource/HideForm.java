@@ -37,7 +37,9 @@ import org.opencv.highgui.Highgui;
 
 @SuppressWarnings("serial")
 public class HideForm extends JFrame {
-	String covFileName, msgFileName, memoMsgStr = "";
+	private String covFileName, msgFileName, memoMsgStr = "";
+	private BufferedImage imgCovRepr = null, imgMsgRepr = null;
+	private ImageIcon iconCov = null, iconMsg = null;
 	
 	//------------------------------- HideForm(0) => EMBED DATA IN IMAGES ----------------------------
 	//------------------------------- HideForm(1) => CHECK IMAGE WATERMARK ---------------------------	
@@ -137,8 +139,8 @@ public class HideForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.PAGE_START;	
-		ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-		covImg.setIcon(icon);
+		iconCov = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+		covImg.setIcon(iconCov);
 		panel.add(covImg,gbc);
 		
 		// message input (text area from LSB(text) mode)	
@@ -161,9 +163,9 @@ public class HideForm extends JFrame {
 			// image message repres.	
 			gbc.gridx = 2;				// Hecht mode -> showing message image
 			gbc.gridy = 4;	
-			msgImg.setIcon(icon);		// declared at image cover
-			icon.getImage().flush();	// garbage collector
-			icon = null;	
+			msgImg.setIcon(iconCov);		// initialised at covImg
+			iconCov.getImage().flush();	// garbage collector
+			iconCov = null;	
 			panel.add(msgImg,gbc);
 		
 			// label hide mode
@@ -213,13 +215,15 @@ public class HideForm extends JFrame {
 		hideModeCombo.addActionListener (new ActionListener () {
 		    public void actionPerformed(ActionEvent e) 
 		    {	
-		    	int index = hideModeCombo.getSelectedIndex();
+		    	int index = hideModeCombo.getSelectedIndex(), canHide = 0;
 		        if(index == 0 || index == 2)
 		        {
 		        	scroll.setVisible(false);
 		        	msgInput.setVisible(false);		        	
 		        	msgImg.setVisible(true);
 		        	msgTxt.setText(memoMsgStr);
+		        	if(imgCovRepr != null)
+		        		canHide = imgCovRepr.getHeight() * imgCovRepr.getWidth();		        				        		
 		        }
 		        else if(index == 1)
 		        {		        	
@@ -227,8 +231,14 @@ public class HideForm extends JFrame {
 		        	msgInput.setVisible(true);
 		        	msgImg.setVisible(false);	
 		        	memoMsgStr = msgTxt.getText();
-		    		msgTxt.setText("<html>Select a .txt file or<br/> enter your message here:</html>");		        			    		
-		        }	        
+		    		msgTxt.setText("<html>Select a .txt file or<br/> enter your message here:</html>");		    
+		        	if(imgCovRepr != null)
+		        		canHide = (imgCovRepr.getHeight() * imgCovRepr.getWidth() * 3) / 8;			
+		        }
+		        if(imgCovRepr != null)
+			        covTxt.setText("<html>File: <font color='red'>"+
+			        		covFileName.substring( covFileName.lastIndexOf("\\")+1, covFileName.length())+ 
+			        		"</font><br/>Hides: "+NumberFormat.getInstance().format(canHide)+" bytes</html>");	
 		    }
 		});
 		
@@ -236,13 +246,11 @@ public class HideForm extends JFrame {
 		{	
 			public void actionPerformed(ActionEvent e) 
 			{					
-				// set previously chosen dir
 				JFileChooser fc = new JFileChooser();
-				fc.setCurrentDirectory(new File(Menu.defDir));				
+				fc.setCurrentDirectory(new File(Menu.defDir));
+				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
-					BufferedImage img = null;
-					ImageIcon icon = null;
 					int canHide = 0, index;					
 					File selectedFile = fc.getSelectedFile();
 					
@@ -252,23 +260,17 @@ public class HideForm extends JFrame {
 						return;
 					}					
 					try {
-						img = ImageIO.read(selectedFile);	
-						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-						covImg.setIcon(icon);	
+						imgCovRepr = ImageIO.read(selectedFile);	
+						iconCov = new ImageIcon(imgCovRepr.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+						covImg.setIcon(iconCov);	
 						
 						if(mode == 0)
 						{
 							index = hideModeCombo.getSelectedIndex();
-							switch(index)
-							{
-								case 0:
-								case 2:
-									canHide = img.getHeight() * img.getWidth();
-									break;
-								case 1:
-									canHide = (img.getHeight() * img.getWidth() * 3) / 8;
-									break;
-							}
+							if(index == 0 || index == 2)
+								canHide = imgCovRepr.getHeight() * imgCovRepr.getWidth();
+							else
+								canHide = (imgCovRepr.getHeight() * imgCovRepr.getWidth() * 3) / 8;
 						}
 						else canHide = (int)selectedFile.length();
 					}
@@ -277,23 +279,17 @@ public class HideForm extends JFrame {
 						Menu.infoBox("This file is invalid.");
 						return;
 					}
-					finally 
-					{ 					// garbage collector
-						if(icon != null)
+					finally { 	
+						if(iconCov != null)		// gc
 						{
-							icon.getImage().flush(); 
-							icon = null;
+							iconCov.getImage().flush();
+							iconCov = null;
 						}
-						if(img != null)
-						{
-							img.flush();
-							img = null;
-						}
-						Menu.defDir = fc.getCurrentDirectory().toString();
+						Menu.defDir = selectedFile.getParentFile().toString();
 					}
 					
 					covTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
-								  "</font><br/>Can hide: "+NumberFormat.getInstance().format(canHide)+" bytes</html>");						
+								  "</font><br/>Hides: "+NumberFormat.getInstance().format(canHide)+" bytes</html>");						
 					covFileName = selectedFile.toString();					
 				}
 				System.gc();
@@ -308,16 +304,14 @@ public class HideForm extends JFrame {
 				fc.setCurrentDirectory(new File(Menu.defDir));				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
-					BufferedImage img = null;
-					ImageIcon icon = null;
 					int imgBytes = 0;
 					File selectedFile = fc.getSelectedFile();
 					
 					try {						
-    					img = ImageIO.read(selectedFile);
-    					imgBytes = img.getHeight() * img.getWidth() * 3;
-						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-						msgImg.setIcon(icon);
+    					imgMsgRepr = ImageIO.read(selectedFile);
+    					imgBytes = imgMsgRepr.getHeight() * imgMsgRepr.getWidth() * 3;
+    					iconMsg = new ImageIcon(imgMsgRepr.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+						msgImg.setIcon(iconMsg);
 						
 						if(hideModeCombo.getSelectedIndex() != 2)
 							hideModeCombo.setSelectedIndex(0);
@@ -335,8 +329,8 @@ public class HideForm extends JFrame {
 						else 
 							hideModeCombo.setSelectedIndex(2);	
 						
-						icon = new ImageIcon(Menu.fileImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-						msgImg.setIcon(icon);	
+						iconMsg = new ImageIcon(Menu.fileImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+						msgImg.setIcon(iconMsg);	
 						imgBytes = (int)selectedFile.length();
 					}	
 					catch (ArrayIndexOutOfBoundsException ex2)
@@ -344,20 +338,15 @@ public class HideForm extends JFrame {
 						Menu.infoBox("This file is invalid.");
 						return;
 					}
-					catch(Exception ex3){System.out.println(ex3.toString()); }
+					catch(Exception ex3){ }
 					finally 
 					{ 					// garbage collector
-						if(icon != null)
+						if(iconMsg != null)
 						{
-							icon.getImage().flush(); 
-							icon = null;
+							iconMsg.getImage().flush(); 
+							iconMsg = null;
 						}
-						if(img != null)
-						{
-							img.flush();
-							img = null;
-						}
-						Menu.defDir = fc.getCurrentDirectory().toString();
+						Menu.defDir = selectedFile.getParentFile().toString();
 					}
 
 					msgTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+

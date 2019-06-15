@@ -31,8 +31,9 @@ import java.util.Arrays;
 
 @SuppressWarnings("serial")
 public class ExtractForm extends JFrame {	
-	String covFileName;	
-	
+	private String covFileName;	
+	private BufferedImage imgCovRepr = null;				
+	private ImageIcon iconCov = null;
 	//------------------------------- ExtractForm(0) => EXTRACT STEGANOGRAPHIED DATA -------------------------
 	//------------------------------- ExtractForm(1) => ADD WATERMARK TO IMAGE -------------------------------	
 	ExtractForm(int mode) 
@@ -92,10 +93,8 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 3;
 		gbc.anchor = GridBagConstraints.PAGE_START;		
-		ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-		covImg.setIcon(icon);
-		icon.getImage().flush();	// garbage collector
-		icon = null;	
+		iconCov = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+		covImg.setIcon(iconCov);
 		panel.add(covImg,gbc);		
 
 		// password label
@@ -118,6 +117,7 @@ public class ExtractForm extends JFrame {
 		gbc.gridx = 0;
 		gbc.gridy = 4;	
 		gbc.anchor = GridBagConstraints.EAST;	
+		
 		if(mode == 0){	
 			confirmBtn.setFont(font.deriveFont(15*scale));	
 			panel.add(confirmBtn, gbc);
@@ -135,32 +135,25 @@ public class ExtractForm extends JFrame {
 				fc.setCurrentDirectory(new File(Menu.defDir));				
 				if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 				{	
-					BufferedImage img = null;				
-					ImageIcon icon = null;
 					File selectedFile = fc.getSelectedFile();
 					
 					try {
-						img = ImageIO.read(selectedFile);	
-						icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-						covImg.setIcon(icon);				
+						imgCovRepr = ImageIO.read(selectedFile);	
+						iconCov = new ImageIcon(imgCovRepr.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+						covImg.setIcon(iconCov);				
 					} 
 					catch (Exception ex) 
 					{ 
 						Menu.infoBox("Invalid file. Please select an image as your cover.");
 						return;
 					}	
-					finally { 					// garbage collector
-						if(icon != null)
+					finally { 			// garbage collector
+						if(iconCov != null)
 						{
-							icon.getImage().flush(); 
-							icon = null;
+							iconCov.getImage().flush(); 
+							iconCov = null;
 						}
-						if(img != null)
-						{
-							img.flush();
-							img = null;
-						}
-						Menu.defDir = fc.getCurrentDirectory().toString();
+						Menu.defDir = selectedFile.getParentFile().toString();
 					}
 					
 					covFileName = fc.getSelectedFile().toString();
@@ -191,9 +184,7 @@ public class ExtractForm extends JFrame {
 					return;
 				}	
 				
-				Mat cov = Highgui.imread(covFileName), msgMat;
-				
-				
+				Mat cov = Highgui.imread(covFileName), msgMat;			
 				if((msgMat = OpenCV.extImgHecht(cov, key)).cols() != 1) 
 				{
 					found = 0;
@@ -228,23 +219,30 @@ public class ExtractForm extends JFrame {
 				{							 				
 					 fileName = fc.getSelectedFile().toString();
 					 
-					 if(found == 0){      	   // found Hecht image hidden inside cover 
-						 
+					 if(found == 0)				// found Hecht image hidden inside cover 
+					 {      	   						 
 						 if(!Menu.checkFileExtension(fileName,".png.bmp.jpg"))
 							 fileName += ".png";							 
 						 Highgui.imwrite(fileName, msgMat);
 					 }
-					 else  {
-						 if(found == 1){        // found text message							 		
+					 else  
+					 {
+						 if(found == 1)			 // found text message
+						 {       							 		
 							 if(!Menu.checkFileExtension(fileName,".txt"))
 								 fileName += ".txt";
 						 }
 						 else  		    		// found lossless file type(All Files)					
 							 fileName = fc.getSelectedFile().toString()+type;						
-						 OpenCV.writeFile(fileName, msgByte);
-						 Menu.infoBox(type.toUpperCase()+" file extracted succesfully!");
+						 OpenCV.writeFile(fileName, msgByte);						
 					 }
 					 Menu.defDir = fc.getCurrentDirectory().toString();
+					 					 
+					 try{
+						 Desktop dt = Desktop.getDesktop();		// open folder
+						 dt.open(new File(Menu.defDir));
+					 }
+					 catch(IOException ex){}
 				}				
 			}
 		});
