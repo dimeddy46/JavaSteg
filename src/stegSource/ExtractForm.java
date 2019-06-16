@@ -1,7 +1,5 @@
 package stegSource;
 
-
-
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -31,9 +29,11 @@ import java.util.Arrays;
 
 @SuppressWarnings("serial")
 public class ExtractForm extends JFrame {	
+	
 	private String covFileName;	
 	private BufferedImage imgCovRepr = null;				
 	private ImageIcon iconCov = null;
+	
 	//------------------------------- ExtractForm(0) => EXTRACT STEGANOGRAPHIED DATA -------------------------
 	//------------------------------- ExtractForm(1) => ADD WATERMARK TO IMAGE -------------------------------	
 	ExtractForm(int mode) 
@@ -43,7 +43,7 @@ public class ExtractForm extends JFrame {
 		float scale = m.getUnivScale();
 		m = null;
 		
-		setTitle("StegLSB");
+		setTitle("JavaSteg");
 		setSize((int)(600*scale), (int)(455*scale));
 		setResizable(false);	
 		setLocationRelativeTo(null);

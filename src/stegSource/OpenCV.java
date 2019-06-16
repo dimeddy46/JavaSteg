@@ -2,15 +2,12 @@ package stegSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.security.SecureRandom;
-import java.util.Base64;
 import java.util.Random;
 import java.io.File;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Core;
 import org.opencv.highgui.Highgui;
-import org.opencv.imgproc.Imgproc;
 
 public class OpenCV {
 
@@ -414,7 +411,8 @@ public class OpenCV {
 		   j = 0;
 	   }
 	   encDecMat(msg, keyBuild);
-	   Highgui.imwrite("cript1.png",msg);
+	   Highgui.imwrite("cript1.png",msg);		
+	   
 	   y = 1; x = 0;
 	   msgVal = new byte[3];
 	   for(i = 0;i < msg.rows(); i++)			// each msg byte is written on the cover's LSB using from:
@@ -605,190 +603,5 @@ public class OpenCV {
 	   return fileContents;	   
    }
       
-   //---------------------------------------------------------
-
-  public static void main(String[] args) throws Exception
-   {	
-	  Mat sub, cov = Highgui.imread("Samples/tiger.bmp");	
-	  Highgui.imwrite("test1.png", Watermark.hideDCT(cov, "COPY"));
-	  cov = Highgui.imread("test1.png");
-	  Watermark.hideDCT(cov, "COPY");
-	  /*StringBuilder key = new StringBuilder("mere");
-	  byte[] pm = "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest".getBytes();
-	  encDecInfo(pm,key,pm.length);
-	  byte[] freq = new byte[256];
-	  for(int i = 0;i<pm.length;i++)
-		  freq[pm[i]+128]++;
-	  int c = 0;
-	  for(int i = 0;i<256;i++)
-		  if(freq[i] != 0){
-			  System.out.println(i+" "+freq[i]);
-			  c++;
-		  }
-	  System.out.println(pm.length+" Diferite de 0: "+c);
-	  /* Mat msg, cov = Highgui.imread("Samples/house.bmp"), 
-		ster = Highgui.imread("Samples/bridge.png");
-	   String key1 = "COPY", msg1 = "12345";
-	   StringBuilder val = new StringBuilder("hest"); 
-	   byte bt = 1, y;	   
-	   short[] rez = new short[3];
-	   byte[] values = new byte[3];
-	   int[] freq = new int[256];
-	   byte[] bit = {1,2,4,8,16,32,64,-128};
-	   int ct = 0, write = 0,i, pnm;
-	   
-	   String img = "Samples/road", ext = ".png"; 
-	   
-	
-	   BufferedImage orig = ImageIO.read(new File("D:\\Downloads\\Java\\StegOpenCV\\test15.jpg"));	   
-	   FileOutputStream out = new FileOutputStream("D:\\Downloads\\Java\\StegOpenCV\\test16.jpg");
-	   JpegEncoder x = new JpegEncoder(orig,90,out);
-	   FileInputStream in = new FileInputStream("D:\\Downloads\\Java\\StegOpenCV\\test16.jpg");
-	   
-	   byte[] info = new byte[45];
-	   String mere = "Di Muoio Eduard";
-	   info = mere.getBytes();
-	   
-	  /* in.read(info, 0, 24);
-	   int c =0;
-	   for(byte zx : info){
-		   System.out.println(c+" "+zx+" "+(char)zx);
-		   c++;
-	   }
-	 //  encDecInfo(info,val, mere.length());
-	   x.JpegObj.Comment = new String(info)+"  ";
-	   System.out.println("In main"+x.JpegObj.getComment());
-	   x.Compress();
-	   System.out.println("In main2"+x.JpegObj.getComment());	   
-	   */
-	   /*   
-	   int i,j,q,p, c= 0;
-	   List<Mat> spl = new ArrayList<Mat>(), spl2 = new ArrayList<Mat>(), spl3 = new ArrayList<Mat>();
-	   
-	   Mat orig = Highgui.imread("Samples/western.png");   
-	   Mat first = new Mat();
-	   orig.copyTo(first);
-	   char[] text = new char[key1.length()];
-	   key1.getChars(0, key1.length(), text, 0);
-	   
-	   Watermark.hideDCT(orig, text);
-	   Highgui.imwrite("Samples/western1.png", orig);
-	   msg = Highgui.imread("Samples/western1.png");		   
-	   msg.convertTo(msg, CvType.CV_32FC3);	   
-	   orig.convertTo(orig, CvType.CV_32FC3);
-	   first.convertTo(first, CvType.CV_32FC3);
-	   
-	   Core.split(msg, spl);
-	   Core.split(orig, spl2);
-	   Core.split(first, spl3);
-	  
-	   Mat deriv, origSub,firstSub, origSubCVT = new Mat(), derivCVT = new Mat(), firstCVT = new Mat();
-	   double a, b, pl, d = 10;
-	   int wa = 0,scr = 0;
-	   for(i = 0;i<msg.rows()-10;i+=8)
-		   for(j = 0;j<msg.cols()-10;j+=8)
-		   {			   			   
-			   deriv = spl.get(0).submat(i,i+8,j,j+8);		   
-			   origSub = spl2.get(0).submat(i,i+8,j,j+8);
-			   firstSub = spl3.get(0).submat(i,i+8,j,j+8);
-			  			   
-			   Core.dct(deriv, deriv);	
-			   Core.dct(origSub, origSub);	
-			   Core.dct(firstSub, firstSub);
-			//   System.out.println("DCT ORIG\n"+firstSub.dump());		   
-		//	   System.out.println("DCT ORIG DUPA\n"+origSub.dump());
-		   //    System.out.println("DCT DERIV\n"+deriv.dump());
-		       
-			   Core.divide(deriv, qnt, deriv);
-			   Core.divide(origSub, qnt, origSub);
-			   Core.divide(firstSub, qnt, firstSub);			   
-			   deriv.convertTo(derivCVT, CvType.CV_16SC1);
-			   origSub.convertTo(origSubCVT, CvType.CV_16SC1);			   
-			   firstSub.convertTo(firstCVT, CvType.CV_16SC1);
-			//   System.out.println("QUANT ORIG\n"+firstCVT.dump());		   
-			//   System.out.println("QUANT ORIG DUPA\n"+origSubCVT.dump());
-		 //      System.out.println("QUANT DERIV\n"+derivCVT.dump());
-			   for(q = 1;q<8;q++)
-				   for(p = 1;p<8;p++)
-				   {	
-					   a = origSubCVT.get(q, p)[0];
-					   b = derivCVT.get(q, p)[0];
-					   if(a != 0 && b != 0 && a != 1 && b != 1 && p + q != 0)
-					   { 
-						   if((a < 0 && b < 0) || (a > 0 && b > 0)){							   
-					   	//		System.out.println(a +" "+ b+" "+q+" "+p);
-					   			scr++;
-								if(++c == 5){
-									 p = 8; 
-									 q = 8;
-								}
-						   }						   
-					   }					   
-				   }
-			   c = 0;
-		   }
-	   System.out.println(scr); 
-
-/*	  Mat zr = Mat.zeros(msg.rows(),msg.cols(),CvType.CV_8UC3);
-	  for(byte b = 0;b<bit.length;b++)
-	  {
-	  	for(i = 0;i<msg.rows();i++)
-		   for(j = 0;j<msg.cols();j++)
-		   {
-			    msg.get(i, j, values );
-	   			values[2] = (byte) (-1 * (values[2] & bit[b])); 
-	   			values[1] = 0; 
-	   			values[0] = 0;
-	   			zr.put(i, j, values);
-		   }
-	   Highgui.imwrite("test"+b+".png", zr);
-	  }
-/*	   String file = "Samples/western.png";
-	   Mat rezf = hideLosslessFile2(cov, OpenCV.readFile(file), 
-				 key1, Menu.getFileExtension(file));
-	  byte[] fis = extLosslessFile2(rezf, key1);
-	  writeFile("stere"+getExt(), fis);
-	  
-/*     byte[] valz = readFile("Samples/western.png");
-	   System.out.println("LUNG:"+valz.length);	   	
-	   Highgui.imwrite("hidden.png",  hideLosslessFile(cov, valz, key1));
-	   
-	   m = Highgui.imread("hidden.png",-1);
-	   if(m.rows() != 1 ){
-		   values = extLosslessFile(m,key1);
-		   if(values.length == 1)
-		   {
-			   System.out.println(values.length+" pass gresit");
-			   return;
-		   }
-		   writeFile("mere2.png",values);
-		   	
-	   }
-/*	   byte[] valz = readFile("Samples/Galois.exe");
-	   Highgui.imwrite("Samples/tes.png", hideBinaryFile(cov, valz, key1));*/
-	    
-
-/*     m = hideImgLossless(cov,msg,key1);
-	   Highgui.imwrite("testInit2.png", m);
-	   m = Highgui.imread("testInit2.png",-1);
-	   Highgui.imwrite("testz2.png", extImgLossless(m,key1));
-	   
-/*
-	   m = ascImgHecht(cov,msg,key1);
-	   if(m.rows() == 1){System.out.println("prea mic");return;}
-	   Highgui.imwrite("steg1a.png", m);
-	   
-	   m = Highgui.imread("steg1a.png");
-	   key1 = "meas";
-	   m = extImgHecht(m,key1);
-	   if(m.rows() == 1){System.out.println("NU E");return;}
-	   Highgui.imwrite("stegz.png", m);*/
-	  
-	   /*  m = LSBAscundere(m,msg,key1,bt);
-	   Highgui.imwrite("test1.png", m);
-	   m = Highgui.imread("test1.png"); 
-	   System.out.println(LSBExtragere(m, key1, bt));
-	  	*/
-   }
 
 }

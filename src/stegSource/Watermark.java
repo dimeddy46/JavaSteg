@@ -3,14 +3,11 @@ package stegSource;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Scanner;
-
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
 
-public class Watermark 
+public class Watermark extends Thread
 {
 	 private static float standardQuant[][] = 
 		 {
@@ -25,7 +22,34 @@ public class Watermark
 		};	 
 	 static String stats;
 	 static double probability = -1;
+	 private Mat crt = new Mat();
+	 private int[] xSt = new int[2];
 	 
+	 public Watermark(Mat cr, int x, int xEnd){
+		 cr.copyTo(crt);
+		 xSt[0] = x;
+		 xSt[1] = xEnd;
+	 }
+	 
+	 @Override
+	 public void run()
+	 {
+		 int i,j;
+		 String rez;
+		 
+		 try{
+			 for(i = xSt[0];i<xSt[1];i++)
+				 for(j = 0;j < 8;j++)
+				 {
+					rez = extDCT(crt,i,j);
+					rez = getStatistics(rez);
+					if(probability == 100)
+					{
+						i = 8;j = 8;					
+					}
+				 }
+		 } catch(Exception ex){}
+	 }
 	 private static boolean safeGuard(double[] coef)
 	 {
 		   double safe;
@@ -171,10 +195,8 @@ public class Watermark
 		   
 		   if(space != 0)
 		   {
-			   System.out.println("\nSTART \n");
 			   for(i = 0;i<space; i++)
 			   {	
-				   System.out.println(occ[i]);
 				   if(occ[i] == null)
 					   continue;		
 				   
@@ -182,7 +204,7 @@ public class Watermark
 					   if(i != j && occ[j] != null && occ[i].equals(occ[j]))					   
 						   crt++;
 					   
-				   if(crt > max)
+				   if(crt > max || (crt == max && occ[i].length() < mark.length()))
 				   {
 				   		mark = occ[i];
 				   		max = crt;
@@ -198,10 +220,6 @@ public class Watermark
 		   int[] freq = new int[256];
 		   double prob, total = 0;
 		   String formated = "TOTAL CHARACTERS EXTRACTED: "+lenExtr+"\n\n";
-		   
-		//   for(i = 1;i<=extr.length()/100;i++)
-		//	   	System.out.println(i+" "+ extr.substring(100*(i-1), 100*i));
-		//  System.out.println(i+" "+ extr.substring(100*(i-1), 100*(i-1)+ extr.length()-100*(i-1)));
 		   
 		   String mark = getMarkedString(extr);
 		   if(mark != null)
@@ -219,7 +237,7 @@ public class Watermark
 			   for(i = 0;i<=255;i++)
 			   {	
 				   prob = freq[i]*1.0 / lenExtr;	// a unmarked image has lots of random values, 
-				   if(prob > 0.01)					// none can pass 0.01 in frequency if not watermarked
+				   if(prob > 0.01 && freq[i] > 10)	// none can pass 0.01 in frequency if not watermarked
 				   {
 					  formated = String.format("%sPROB: %.3f, FREQUENCY: %d, DEC: %d, ASC: %c\n", 
 							  formated, prob, freq[i], i, i); 
@@ -228,15 +246,14 @@ public class Watermark
 			   }
 		   }
 		   formated = String.format("%s\nEXTRACTED MARK: %s %s\n", 
-				   formated, lenMark != 0? mark : "Unknown string..", (lenExtr < 200)? "(Not accurate!)":"");
+				   formated, lenMark != 0? mark : "Unknown string..", (lenExtr < 200)? "\n(Not accurate!)":"");
 		   
 		   total = lenMark == 0? total/lenExtr*100.0 : 100.0;
 
 		   formated = String.format("%s\n****************************************\n"
 		   							  + "TOTAL WATERMARK PROBABILITY: : %.2f%% %s"
 		   						    + "\n****************************************", 
-		   						    formated, lenExtr == 0? 0 : total, (lenExtr < 200)? "(Not accurate!)":"");
-		   
+		   						    formated, lenExtr == 0? 0 : total, (lenExtr < 200)? "\n(Not accurate!)":"");
 		   if(total > probability)
 		   {
 			   probability = total;

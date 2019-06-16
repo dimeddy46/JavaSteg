@@ -94,7 +94,7 @@ public class Menu extends JFrame {
 		imgSize[0] *= univScale;
 		imgSize[1] *= univScale;
 
-		setTitle("StegLSB");
+		setTitle("JavaSteg");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);
 		setSize((int)(400*univScale),(int)(260*univScale));

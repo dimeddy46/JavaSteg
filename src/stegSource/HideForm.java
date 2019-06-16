@@ -1,7 +1,5 @@
 package stegSource;
 
-
-
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -18,8 +16,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.Scanner;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -37,6 +33,7 @@ import org.opencv.highgui.Highgui;
 
 @SuppressWarnings("serial")
 public class HideForm extends JFrame {
+	
 	private String covFileName, msgFileName, memoMsgStr = "";
 	private BufferedImage imgCovRepr = null, imgMsgRepr = null;
 	private ImageIcon iconCov = null, iconMsg = null;
@@ -50,7 +47,7 @@ public class HideForm extends JFrame {
 		float scale = m.getUnivScale();
 		m = null;
 
-		setTitle("StegLSB");
+		setTitle("JavaSteg");
 		setSize((int)(790*scale), (int)((mode == 0?460:440)*scale));
 		setResizable(false);	
 		setLocationRelativeTo(null);
@@ -222,8 +219,11 @@ public class HideForm extends JFrame {
 		        	msgInput.setVisible(false);		        	
 		        	msgImg.setVisible(true);
 		        	msgTxt.setText(memoMsgStr);
+		        	
 		        	if(imgCovRepr != null)
-		        		canHide = imgCovRepr.getHeight() * imgCovRepr.getWidth();		        				        		
+		        		canHide = index == 0? 
+		        				imgCovRepr.getHeight() * imgCovRepr.getWidth() :	
+		        				imgCovRepr.getHeight() * imgCovRepr.getWidth() *3;		        		
 		        }
 		        else if(index == 1)
 		        {		        	
@@ -253,7 +253,7 @@ public class HideForm extends JFrame {
 				{	
 					int canHide = 0, index;					
 					File selectedFile = fc.getSelectedFile();
-					
+					String covForWhat = "";
 					if(!Menu.checkFileExtension(selectedFile.toString(), ".jpg.jpeg.png.bmp"))
 					{
 						Menu.infoBox("Please select a image as your cover.");
@@ -266,13 +266,19 @@ public class HideForm extends JFrame {
 						
 						if(mode == 0)
 						{
+							covForWhat = "Hides";
 							index = hideModeCombo.getSelectedIndex();
-							if(index == 0 || index == 2)
+							if(index == 0)
 								canHide = imgCovRepr.getHeight() * imgCovRepr.getWidth();
+							else if(index == 1)
+								canHide = (imgCovRepr.getHeight() * imgCovRepr.getWidth() * 3) / 8;	
 							else
-								canHide = (imgCovRepr.getHeight() * imgCovRepr.getWidth() * 3) / 8;
+								canHide = imgCovRepr.getHeight() * imgCovRepr.getWidth() * 3;					
 						}
-						else canHide = (int)selectedFile.length();
+						else {
+							canHide = (int)selectedFile.length();
+							covForWhat = "Size";
+						}
 					}
 					catch (Exception ex) 
 					{
@@ -289,7 +295,7 @@ public class HideForm extends JFrame {
 					}
 					
 					covTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
-								  "</font><br/>Hides: "+NumberFormat.getInstance().format(canHide)+" bytes</html>");						
+								  "</font><br/>"+covForWhat+": "+NumberFormat.getInstance().format(canHide)+" bytes</html>");						
 					covFileName = selectedFile.toString();					
 				}
 				System.gc();
@@ -399,10 +405,10 @@ public class HideForm extends JFrame {
 						msgFileName = null;
 						msgTxt.setText("");	
 						
-						ImageIcon icon = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-						msgImg.setIcon(icon);
-						icon.getImage().flush();	// gc
-						icon = null;	
+						iconMsg = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+						msgImg.setIcon(iconMsg);
+						iconMsg.getImage().flush();	// gc
+						iconMsg = null;	
 						return;
 					}
 					rez = OpenCV.hideImgHecht(cov, Highgui.imread(msgFileName), key);
@@ -415,7 +421,7 @@ public class HideForm extends JFrame {
 				if(rez.rows() == 1)
 				{
 					Menu.infoBox("The message file is bigger than cover file or an empty message file has been selected.<br>"
-							   + "For Hecht the required cover must be 3 times bigger than the message.");				
+							   + "Hecht requires a 3 times bigger cover than message.");				
 					return;
 				}
 				
@@ -430,6 +436,7 @@ public class HideForm extends JFrame {
 					
 					if(!Menu.checkFileExtension(key, ".png.bmp"))
 						key += ".png";	
+					
 					Highgui.imwrite(key, rez);	
 					Menu.infoBox("Image hidden succesfully!");
 					Menu.defDir = fc.getCurrentDirectory().toString();
@@ -454,56 +461,45 @@ public class HideForm extends JFrame {
 					return;
 				}
 				
-				BufferedImage img = null;
-				ImageIcon icon = null;
 				File selectedFile = new File(covFileName);
-				int imgBytes, x, y;
+				int imgBytes;
 				
 				try {						
-					img = ImageIO.read(selectedFile);		// update image representation and size
-					icon = new ImageIcon(img.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
-					covImg.setIcon(icon);
+					imgCovRepr = ImageIO.read(selectedFile);		// update image representation and size
+					iconCov = new ImageIcon(imgCovRepr.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));
+					covImg.setIcon(iconCov);
 					imgBytes = (int)selectedFile.length();
 					covTxt.setText("<html>File: <font color='red'>"+selectedFile.getName()+
 							  "</font><br/>Size: "+NumberFormat.getInstance().format(imgBytes)+" bytes</html>");	
 				}
 				catch(Exception ex)
 				{					
-					icon = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));	
-					covImg.setIcon(icon);
+					iconCov = new ImageIcon(Menu.noImage.getScaledInstance(imgSize[0], imgSize[1], Image.SCALE_SMOOTH));	
+					covImg.setIcon(iconCov);
 					covTxt.setText("<html><br/><br/></html>");
 					Menu.infoBox("The selected file is not available anymore.");
 					return;
 				}
 				finally
 				{					
-					if(icon != null)		// GC
+					if(iconCov != null)		// GC
 					{
-						icon.getImage().flush(); 
-						icon = null;
-					}
-					if(img != null)
-					{
-						img.flush();
-						img = null;
+						iconCov.getImage().flush(); 
+						iconCov = null;
 					}
 				}
 				
 				Mat cov = Highgui.imread(covFileName);
-				String rez = "";
-				boolean found = false;
+				Thread[] th = {new Watermark(cov,0,4), new Watermark(cov,4,8)};
+				th[0].start();
+				th[1].start();
 				
-				for(x = 0;x<8;x++)
-					for(y = 0;y<8;y++)
-					{
-						rez = Watermark.extDCT(cov,x,y); 
-						rez = Watermark.getStatistics(rez);
-					//	System.out.println(x+" "+y+"\n"+rez);
-						if(Watermark.probability == 100)
-						{
-							x = 8; y = 8;
-						}
-					}		
+				try{							// start 2 threads for faster computation
+					th[0].join();
+					th[1].join();
+				}
+				catch(InterruptedException ex){}
+				
 				msgInput.setText(Watermark.stats);
 				Watermark.stats = "";
 				Watermark.probability = -1;
