@@ -35,19 +35,19 @@ public class Watermark extends Thread
 	 public void run()
 	 {
 		 int i,j;
-		 String rez;
-		 
+		 String rez;		 
 		 try{
-			 for(i = xSt[0];i<xSt[1];i++)
+			 for(i = xSt[0];i < xSt[1];i++)
 				 for(j = 0;j < 8;j++)
 				 {
 					rez = extDCT(crt,i,j);
 					rez = getStatistics(rez);
-					if(probability == 100)
-					{
+					if(probability == 100){
 						i = 8;j = 8;					
 					}
+					 System.gc();		// temporary solution, TODO: fix ---------------------------------------
 				 }
+			
 		 } catch(Exception ex){}
 	 }
 	 private static boolean safeGuard(double[] coef)
@@ -212,6 +212,12 @@ public class Watermark extends Thread
 				   crt = 0;
 			   }
 		   }
+		   if(max == 0)
+		   {
+			   mark = "(Not accurate!)";
+			   for(i = 0;i<space;i++)
+				   mark += "\n   "+occ[i];			   
+		   }
 		   return mark;
 	}
 	public static String getStatistics(String extr)
@@ -245,15 +251,15 @@ public class Watermark extends Thread
 				   }
 			   }
 		   }
-		   formated = String.format("%s\nEXTRACTED MARK: %s %s\n", 
-				   formated, lenMark != 0? mark : "Unknown string..", (lenExtr < 200)? "\n(Not accurate!)":"");
+		   formated = String.format("%s\nEXTRACTED MARK: %s\n", 
+				   formated, lenMark != 0? mark : "Unknown string..");
 		   
 		   total = lenMark == 0? total/lenExtr*100.0 : 100.0;
 
 		   formated = String.format("%s\n****************************************\n"
-		   							  + "TOTAL WATERMARK PROBABILITY: : %.2f%% %s"
+		   							  + "TOTAL WATERMARK PROBABILITY: : %.2f%%"
 		   						    + "\n****************************************", 
-		   						    formated, lenExtr == 0? 0 : total, (lenExtr < 200)? "\n(Not accurate!)":"");
+		   						    formated, lenExtr == 0? 0 : total);
 		   if(total > probability)
 		   {
 			   probability = total;

@@ -490,19 +490,26 @@ public class HideForm extends JFrame {
 				}
 				
 				Mat cov = Highgui.imread(covFileName);
-				Thread[] th = {new Watermark(cov,0,4), new Watermark(cov,4,8)};
-				th[0].start();
-				th[1].start();
+				int i,cpt = 0;
+				int numThr = Runtime.getRuntime().availableProcessors();
+				numThr = numThr >= 4? 4 : 2;
 				
-				try{							// start 2 threads for faster computation
-					th[0].join();
-					th[1].join();
+				Thread[] th = new Thread[numThr];
+				for(i = 0;i<numThr;i++,cpt= cpt + 8 / numThr)
+				{
+					th[i] = new Watermark(cov, cpt, cpt + 8 / numThr);
+					th[i].start();
+				}
+				try{							// start threads for faster computation
+					for(i = 0;i<numThr;i++)
+						th[i].join();
 				}
 				catch(InterruptedException ex){}
 				
 				msgInput.setText(Watermark.stats);
 				Watermark.stats = "";
 				Watermark.probability = -1;
+				th = null;
 			}
 		});
 		addWindowListener(new WindowAdapter() {
