@@ -1,6 +1,2 @@
-Samples/
-bin/
-dll/
-.settings/
-.classpath
-.project
+/target/
+.settings
