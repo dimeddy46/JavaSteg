@@ -297,7 +297,8 @@ public class ExtractForm extends JFrame {
 		});
 		addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-            	Menu.owner.toFront();
+            	if(Menu.owner != null)
+            		Menu.owner.toFront();
             }
         });
 	}	

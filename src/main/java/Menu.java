@@ -4,7 +4,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import org.opencv.core.Core;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -35,11 +34,11 @@ public class Menu extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {				
 				try {
-					 System.loadLibrary(Core.NATIVE_LIBRARY_NAME);	
+					 nu.pattern.OpenCV.loadShared();
 				     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			    } 
 				catch (UnsatisfiedLinkError e) {
-					infoBox(Core.NATIVE_LIBRARY_NAME+" library has not been found in this directory or is invalid.");
+					infoBox("Could not load OpenCV shared library. Aborting.");
 					return;
 				}
 			    catch (UnsupportedLookAndFeelException | ClassNotFoundException | 
@@ -58,7 +57,8 @@ public class Menu extends JFrame {
 	}
 	
 	// used to embed icons in final .jar file
-	public static Image getImage(final String pathAndFileName) {		
+	public static Image getImage(final String pathAndFileName) 
+	{		
 	    final URL url = Thread.currentThread().getContextClassLoader().getResource(pathAndFileName);
 	    return Toolkit.getDefaultToolkit().getImage(url);
 	}
@@ -166,11 +166,12 @@ public class Menu extends JFrame {
 				x = null;
 			}
 		});
+		
 		markBtn.addActionListener(new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent e) 
 			{		
-				ExtractForm x = new ExtractForm(1);		// no need for another class just to change 3 functions
+				ExtractForm x = new ExtractForm(1);		// no need for another UI just to change 3 functions
 				x.setVisible(true);	
 				x = null;
 			}
@@ -185,11 +186,12 @@ public class Menu extends JFrame {
 				x = null;
 			}
 		});
+		
 		addWindowListener(new WindowAdapter() {
             public void windowOpened(WindowEvent e) 
             {
-            	//used to regain focus to Menu
-            	owner = javax.swing.FocusManager.getCurrentManager().getActiveWindow();		
+            	//used to regain focus to Menu(not available on linux)
+            	owner = javax.swing.FocusManager.getCurrentManager().getActiveWindow();	
             }
         });
 	}
