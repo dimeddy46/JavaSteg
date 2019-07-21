@@ -1,5 +1,6 @@
 <h2>JavaSteg</h2>
-Steganography tool written in Java 8 with OpenCV library whose main purpose is hiding/extracting information in/from images.
+Steganography tool written in Java 8 with OpenCV library whose 
+<br>main purpose is hiding/extracting information in/from images.
 <br>Robust invisible watermark module also provided. 
 <br>Uses symmetric key encryption.<br><br>
 
