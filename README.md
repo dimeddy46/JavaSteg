@@ -7,7 +7,8 @@ Version <b>2.1.2</b> can hide data inside .PNG and .BMP and performs the followi
 <br>- <b>Hecht</b> for image messages (hide the most significant 6 bits of each byte).
 <br>- <b>LSB(text)</b> for text messages, reduces the cover's quality dependant on text quantity.
 <br>- <b>Lossless</b> for <b>ANY</b> file format, as a message (cover will be converted to 16 bits so no image noise will appear).
-<br>- <b>Watermark</b> images using a author defined string and compute the probability of an image to be watermarked by this app.
+<br>- <b>Watermark</b> images using a author defined string.
+<br>- Compute the probability of an image to be watermarked by this application.
 
 <h3>Build using Maven:</h3>
 <code>
